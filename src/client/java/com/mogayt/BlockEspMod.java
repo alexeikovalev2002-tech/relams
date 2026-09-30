@@ -1,6 +1,5 @@
 package com.mogayt;
 
-import com.mojang.blaze3d.systems.RenderSystem; // <-- ДОБАВЛЕН ИМПОРТ
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -15,10 +14,11 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
@@ -27,6 +27,27 @@ public class BlockEspMod implements ClientModInitializer {
     public static boolean espEnabled = true;
 
     private static KeyBinding openMenuKey;
+
+    // Кэш найденных блоков (сканируем редко — не лагает)
+    private static final List<BlockPos> foundBlocks = new ArrayList<>();
+    private static int tickCounter = 0;
+
+    // Специальный слой рендера: рисует СКВОЗЬ СТЕНЫ
+    private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
+            "mog-mod-through-walls",
+            VertexFormats.LINES,
+            VertexFormat.DrawMode.LINES,
+            1536,
+            false,
+            true,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .program(RenderPhase.LINES_PROGRAM)
+                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+                    .writeMaskState(RenderPhase.COLOR_MASK)
+                    .cull(RenderPhase.DISABLE_CULLING)
+                    .build(false)
+    );
 
     static {
         TARGET_BLOCKS.add(Blocks.DIAMOND_ORE);
@@ -51,10 +72,31 @@ public class BlockEspMod implements ClientModInitializer {
                     client.setScreen(new EspMenuScreen());
                 }
             }
+
+            if (!espEnabled || client.world == null || client.player == null) return;
+
+            // Сканируем блоки раз в 10 тиков (2 раза в секунду) — это убирает лаги
+            tickCounter++;
+            if (tickCounter < 10) return;
+            tickCounter = 0;
+
+            foundBlocks.clear();
+            BlockPos playerPos = client.player.getBlockPos();
+            int radius = 16;
+
+            for (BlockPos pos : BlockPos.iterate(
+                    playerPos.add(-radius, -radius, -radius),
+                    playerPos.add(radius, radius, radius))) {
+
+                BlockState state = client.world.getBlockState(pos);
+                if (TARGET_BLOCKS.contains(state.getBlock())) {
+                    foundBlocks.add(pos.toImmutable());
+                }
+            }
         });
 
         WorldRenderEvents.LAST.register((worldRenderContext) -> {
-            if (!espEnabled) return;
+            if (!espEnabled || foundBlocks.isEmpty()) return;
 
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.world == null || client.player == null) return;
@@ -66,39 +108,20 @@ public class BlockEspMod implements ClientModInitializer {
             VertexConsumerProvider consumers = worldRenderContext.consumers();
             if (consumers == null) return;
 
-            // Отключаем тест глубины, чтобы рисовать сквозь стены
-            RenderSystem.disableDepthTest();
-            RenderSystem.depthMask(false);
+            VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
-            // ИСПРАВЛЕНО: Добавлен аргумент 1.0 (толщина линии)
-            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getDebugLineStrip(1.0));
-            Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+            for (BlockPos pos : foundBlocks) {
+                double x = pos.getX() - cameraPos.x;
+                double y = pos.getY() - cameraPos.y;
+                double z = pos.getZ() - cameraPos.z;
 
-            int radius = 24;
-            BlockPos playerPos = client.player.getBlockPos();
-
-            for (BlockPos pos : BlockPos.iterate(
-                    playerPos.add(-radius, -radius, -radius),
-                    playerPos.add(radius, radius, radius))) {
-
-                BlockState state = client.world.getBlockState(pos);
-                if (TARGET_BLOCKS.contains(state.getBlock())) {
-                    double x = pos.getX() - cameraPos.x;
-                    double y = pos.getY() - cameraPos.y;
-                    double z = pos.getZ() - cameraPos.z;
-
-                    VertexRendering.drawBox(
-                            matrices, buffer,
-                            x, y, z,
-                            x + 1, y + 1, z + 1,
-                            1.0f, 0.0f, 0.0f, 1.0f
-                    );
-                }
+                VertexRendering.drawBox(
+                        matrices, buffer,
+                        x, y, z,
+                        x + 1, y + 1, z + 1,
+                        1.0f, 0.0f, 0.0f, 1.0f
+                );
             }
-
-            // Возвращаем тест глубины обратно
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
         });
     }
 }
