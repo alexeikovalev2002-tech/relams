@@ -1,16 +1,21 @@
 package com.mogayt;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,29 +23,55 @@ import java.util.Set;
 public class BlockEspMod implements ClientModInitializer {
 
     private static final Set<Block> TARGET_BLOCKS = new HashSet<>();
+    public static boolean espEnabled = true;
+
+    private static KeyBinding openMenuKey;
 
     static {
         TARGET_BLOCKS.add(Blocks.DIAMOND_ORE);
         TARGET_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
         TARGET_BLOCKS.add(Blocks.ANCIENT_DEBRIS);
+        TARGET_BLOCKS.add(Blocks.GOLD_ORE);
+        TARGET_BLOCKS.add(Blocks.DEEPSLATE_GOLD_ORE);
     }
 
     @Override
     public void onInitializeClient() {
-        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register((worldRenderContext, blockOutlineContext) -> {
+        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.mog-mod.open_menu",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_RIGHT_SHIFT,
+                "category.mog-mod.keys"
+        ));
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (openMenuKey.wasPressed()) {
+                if (client.currentScreen == null) {
+                    client.setScreen(new EspMenuScreen());
+                }
+            }
+        });
+
+        WorldRenderEvents.LAST.register((worldRenderContext) -> {
+            if (!espEnabled) return;
+
             MinecraftClient client = MinecraftClient.getInstance();
-            if (client.world == null || client.player == null) return true;
+            if (client.world == null || client.player == null) return;
 
             MatrixStack matrices = worldRenderContext.matrixStack();
-            if (matrices == null) return true;
+            if (matrices == null) return;
 
             Vec3d cameraPos = worldRenderContext.camera().getPos();
             VertexConsumerProvider consumers = worldRenderContext.consumers();
-            if (consumers == null) return true;
+            if (consumers == null) return;
 
-            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getLines());
+            RenderSystem.disableDepthTest();
+            RenderSystem.depthMask(false);
 
-            int radius = 32;
+            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getDebugLineStrip());
+            Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+
+            int radius = 24;
             BlockPos playerPos = client.player.getBlockPos();
 
             for (BlockPos pos : BlockPos.iterate(
@@ -53,7 +84,6 @@ public class BlockEspMod implements ClientModInitializer {
                     double y = pos.getY() - cameraPos.y;
                     double z = pos.getZ() - cameraPos.z;
 
-                    // ИСПРАВЛЕННАЯ СТРОЧКА:
                     VertexRendering.drawBox(
                             matrices, buffer,
                             x, y, z,
@@ -62,7 +92,9 @@ public class BlockEspMod implements ClientModInitializer {
                     );
                 }
             }
-            return true;
+
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
         });
     }
 }
