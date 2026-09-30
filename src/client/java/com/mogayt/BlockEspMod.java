@@ -39,7 +39,6 @@ public class BlockEspMod implements ClientModInitializer {
             if (consumers == null) return true;
 
             VertexConsumer buffer = consumers.getBuffer(RenderLayer.getLines());
-            Matrix4f matrix4f = matrices.peek().getPositionMatrix();
 
             int radius = 32;
             BlockPos playerPos = client.player.getBlockPos();
@@ -54,8 +53,9 @@ public class BlockEspMod implements ClientModInitializer {
                     double y = pos.getY() - cameraPos.y;
                     double z = pos.getZ() - cameraPos.z;
 
-                    WorldRenderer.drawBox(
-                            matrix4f, buffer,
+                    // ИСПРАВЛЕННАЯ СТРОЧКА:
+                    VertexRendering.drawBox(
+                            matrices, buffer,
                             x, y, z,
                             x + 1, y + 1, z + 1,
                             1.0f, 0.0f, 0.0f, 1.0f
