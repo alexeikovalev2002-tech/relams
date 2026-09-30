@@ -1,23 +1,19 @@
 package com.mogayt;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
-import org.joml.Vector4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -35,17 +31,22 @@ public class BlockEspMod implements ClientModInitializer {
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static int tickCounter = 0;
 
-    // Маркеры на экране: {screenX, screenY, distance, blockName}
-    private static final List<Marker> markers = new ArrayList<>();
-
-    private static class Marker {
-        int x, y;
-        double distance;
-        String name;
-        Marker(int x, int y, double distance, String name) {
-            this.x = x; this.y = y; this.distance = distance; this.name = name;
-        }
-    }
+    // Кастомный слой рендера: рисует СКВОЗЬ СТЕНЫ (без теста глубины)
+    private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
+            "mog-mod-through-walls",
+            VertexFormats.LINES,
+            VertexFormat.DrawMode.LINES,
+            1536,
+            false,
+            true,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .program(RenderPhase.LINES_PROGRAM)
+                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)  // всегда поверх
+                    .writeMaskState(RenderPhase.COLOR_MASK)    // не пишем в глубину
+                    .cull(RenderPhase.DISABLE_CULLING)
+                    .build(false)
+    );
 
     static {
         TARGET_BLOCKS.add(Blocks.DIAMOND_ORE);
@@ -77,7 +78,7 @@ public class BlockEspMod implements ClientModInitializer {
 
             foundBlocks.clear();
             BlockPos playerPos = client.player.getBlockPos();
-            int radius = 32;
+            int radius = 24;
 
             for (BlockPos pos : BlockPos.iterate(
                     playerPos.add(-radius, -radius, -radius),
@@ -90,9 +91,7 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
 
-        // Преобразуем координаты блоков в экранные (во время рендера мира)
         WorldRenderEvents.LAST.register((worldRenderContext) -> {
-            markers.clear();
             if (!espEnabled || foundBlocks.isEmpty()) return;
 
             MinecraftClient client = MinecraftClient.getInstance();
@@ -102,60 +101,23 @@ public class BlockEspMod implements ClientModInitializer {
             if (matrices == null) return;
 
             Vec3d cameraPos = worldRenderContext.camera().getPos();
-            Matrix4f projMatrix = RenderSystem.getProjectionMatrix();
-            Matrix4f posMatrix = matrices.peek().getPositionMatrix();
+            VertexConsumerProvider consumers = worldRenderContext.consumers();
+            if (consumers == null) return;
 
-            int screenWidth = client.getWindow().getScaledWidth();
-            int screenHeight = client.getWindow().getScaledHeight();
+            // Используем наш слой со сквозным рендером
+            VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
             for (BlockPos pos : foundBlocks) {
-                double dx = pos.getX() + 0.5 - cameraPos.x;
-                double dy = pos.getY() + 0.5 - cameraPos.y;
-                double dz = pos.getZ() + 0.5 - cameraPos.z;
+                double x = pos.getX() - cameraPos.x;
+                double y = pos.getY() - cameraPos.y;
+                double z = pos.getZ() - cameraPos.z;
 
-                Vector4f vec = new Vector4f((float) dx, (float) dy, (float) dz, 1.0f);
-                vec.mul(posMatrix);
-                vec.mul(projMatrix);
-
-                if (vec.w <= 0.0f) continue; // Позади камеры
-
-                float ndcX = vec.x / vec.w;
-                float ndcY = vec.y / vec.w;
-                float ndcZ = vec.z / vec.w;
-
-                if (ndcZ < -1.0f || ndcZ > 1.0f) continue;
-
-                int screenX = (int) ((ndcX * 0.5f + 0.5f) * screenWidth);
-                int screenY = (int) ((0.5f - ndcY * 0.5f) * screenHeight);
-
-                if (screenX < 0 || screenX > screenWidth || screenY < 0 || screenY > screenHeight) continue;
-
-                double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                String name = pos.getY() < 0 ? "АЛМАЗ" : "РУДА";
-
-                markers.add(new Marker(screenX, screenY, distance, name));
-            }
-        });
-
-        // Рисуем маркеры поверх экрана
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            if (!espEnabled || markers.isEmpty()) return;
-
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.textRenderer == null) return;
-
-            for (Marker m : markers) {
-                // Красный крестик
-                drawContext.fill(m.x - 6, m.y - 1, m.x + 6, m.y + 1, 0xFFFF0000);
-                drawContext.fill(m.x - 1, m.y - 6, m.x + 1, m.y + 6, 0xFFFF0000);
-
-                // Текст с расстоянием
-                String label = m.name + " " + (int) m.distance + "м";
-                drawContext.drawTextWithShadow(
-                        client.textRenderer,
-                        Text.literal(label),
-                        m.x + 8, m.y - 4,
-                        0xFFFFFF00
+                // Рисуем кубическую рамку вокруг блока (12 рёбер)
+                VertexRendering.drawBox(
+                        matrices, buffer,
+                        x, y, z,
+                        x + 1, y + 1, z + 1,
+                        1.0f, 0.0f, 0.0f, 1.0f
                 );
             }
         });
