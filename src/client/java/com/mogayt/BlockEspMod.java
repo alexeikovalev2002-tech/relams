@@ -1,5 +1,6 @@
 package com.mogayt;
 
+import com.mojang.blaze3d.systems.RenderSystem; // <-- ДОБАВЛЕН ИМПОРТ
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -65,10 +66,12 @@ public class BlockEspMod implements ClientModInitializer {
             VertexConsumerProvider consumers = worldRenderContext.consumers();
             if (consumers == null) return;
 
+            // Отключаем тест глубины, чтобы рисовать сквозь стены
             RenderSystem.disableDepthTest();
             RenderSystem.depthMask(false);
 
-            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getDebugLineStrip());
+            // ИСПРАВЛЕНО: Добавлен аргумент 1.0 (толщина линии)
+            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getDebugLineStrip(1.0));
             Matrix4f matrix4f = matrices.peek().getPositionMatrix();
 
             int radius = 24;
@@ -93,6 +96,7 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
+            // Возвращаем тест глубины обратно
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
         });
