@@ -28,26 +28,9 @@ public class BlockEspMod implements ClientModInitializer {
 
     private static KeyBinding openMenuKey;
 
-    // Кэш найденных блоков (сканируем редко — не лагает)
+    // Кэш найденных блоков — сканируем редко, чтобы не лагало
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static int tickCounter = 0;
-
-    // Специальный слой рендера: рисует СКВОЗЬ СТЕНЫ
-    private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
-            "mog-mod-through-walls",
-            VertexFormats.LINES,
-            VertexFormat.DrawMode.LINES,
-            1536,
-            false,
-            true,
-            RenderLayer.MultiPhaseParameters.builder()
-                    .program(RenderPhase.LINES_PROGRAM)
-                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
-                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
-                    .writeMaskState(RenderPhase.COLOR_MASK)
-                    .cull(RenderPhase.DISABLE_CULLING)
-                    .build(false)
-    );
 
     static {
         TARGET_BLOCKS.add(Blocks.DIAMOND_ORE);
@@ -75,7 +58,7 @@ public class BlockEspMod implements ClientModInitializer {
 
             if (!espEnabled || client.world == null || client.player == null) return;
 
-            // Сканируем блоки раз в 10 тиков (2 раза в секунду) — это убирает лаги
+            // Сканируем блоки раз в 10 тиков (2 раза в секунду)
             tickCounter++;
             if (tickCounter < 10) return;
             tickCounter = 0;
@@ -108,7 +91,7 @@ public class BlockEspMod implements ClientModInitializer {
             VertexConsumerProvider consumers = worldRenderContext.consumers();
             if (consumers == null) return;
 
-            VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
+            VertexConsumer buffer = consumers.getBuffer(RenderLayer.getLines());
 
             for (BlockPos pos : foundBlocks) {
                 double x = pos.getX() - cameraPos.x;
