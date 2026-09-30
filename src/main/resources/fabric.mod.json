@@ -13,6 +13,12 @@
 			"com.mogayt.BlockEspMod"
 		]
 	},
+	"mixins": [
+		{
+			"config": "mog-mod.client.mixins.json",
+			"environment": "client"
+		}
+	],
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~1.21.4",
@@ -21,9 +27,3 @@
 		"fabric-key-binding-api-v1": "*"
 	}
 }
-"mixins": [
-	{
-		"config": "mog-mod.client.mixins.json",
-		"environment": "client"
-	}
-],
