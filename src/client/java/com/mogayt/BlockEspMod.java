@@ -31,7 +31,6 @@ public class BlockEspMod implements ClientModInitializer {
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static int tickCounter = 0;
 
-    // Кастомный слой рендера: рисует СКВОЗЬ СТЕНЫ (без теста глубины)
     private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
             "mog-mod-through-walls",
             VertexFormats.LINES,
@@ -42,8 +41,8 @@ public class BlockEspMod implements ClientModInitializer {
             RenderLayer.MultiPhaseParameters.builder()
                     .program(RenderPhase.LINES_PROGRAM)
                     .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
-                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)  // всегда поверх
-                    .writeMaskState(RenderPhase.COLOR_MASK)    // не пишем в глубину
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+                    .writeMaskState(RenderPhase.COLOR_MASK)
                     .cull(RenderPhase.DISABLE_CULLING)
                     .build(false)
     );
@@ -69,6 +68,9 @@ public class BlockEspMod implements ClientModInitializer {
                     client.setScreen(new EspMenuScreen());
                 }
             }
+
+            // <-- ВОТ ЭТА СТРОЧКА: вызывает Fullbright каждый тик
+            Fullbright.tick();
 
             if (!espEnabled || client.world == null || client.player == null) return;
 
@@ -104,7 +106,6 @@ public class BlockEspMod implements ClientModInitializer {
             VertexConsumerProvider consumers = worldRenderContext.consumers();
             if (consumers == null) return;
 
-            // Используем наш слой со сквозным рендером
             VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
             for (BlockPos pos : foundBlocks) {
@@ -112,7 +113,6 @@ public class BlockEspMod implements ClientModInitializer {
                 double y = pos.getY() - cameraPos.y;
                 double z = pos.getZ() - cameraPos.z;
 
-                // Рисуем кубическую рамку вокруг блока (12 рёбер)
                 VertexRendering.drawBox(
                         matrices, buffer,
                         x, y, z,
