@@ -15,7 +15,6 @@ public class EspMenuScreen extends Screen {
     protected void init() {
         int centerY = this.height / 2;
 
-        // ESP
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.espEnabled ? "ESP: ВКЛ" : "ESP: ВЫКЛ"),
                 (button) -> {
@@ -24,7 +23,6 @@ public class EspMenuScreen extends Screen {
                 }
         ).dimensions(this.width / 2 - 100, centerY - 40, 200, 20).build());
 
-        // Fullbright
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
                 (button) -> {
@@ -33,7 +31,6 @@ public class EspMenuScreen extends Screen {
                 }
         ).dimensions(this.width / 2 - 100, centerY - 10, 200, 20).build());
 
-        // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
