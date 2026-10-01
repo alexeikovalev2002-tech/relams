@@ -71,7 +71,7 @@ public class BlockEspMod implements ClientModInitializer {
 
             // <-- ВОТ ЭТА СТРОЧКА: вызывает Fullbright каждый тик
             Fullbright.tick();
-
+            Freecam.tick(client);
             if (!espEnabled || client.world == null || client.player == null) return;
 
             tickCounter++;
