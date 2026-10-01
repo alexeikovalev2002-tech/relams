@@ -13,12 +13,14 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
@@ -89,6 +91,9 @@ public class BlockEspMod implements ClientModInitializer {
                 "category.mog-mod.keys"
         ));
 
+        Fullbright.register();
+        ChunkTracker.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
                 if (client.currentScreen == null) {
@@ -97,7 +102,11 @@ public class BlockEspMod implements ClientModInitializer {
             }
 
             Fullbright.tick();
-            Freecam.tick(client);
+
+            // Очистка старых чанков раз в 100 тиков
+            if (client.player != null && client.player.age % 100 == 0) {
+                ChunkTracker.cleanup();
+            }
 
             if (!espEnabled || client.world == null || client.player == null) return;
 
@@ -111,6 +120,7 @@ public class BlockEspMod implements ClientModInitializer {
 
             Set<Block> targets = getTargetBlocks();
 
+            // 1. Ищем блоки рядом (стандартный ESP)
             for (BlockPos pos : BlockPos.iterate(
                     playerPos.add(-radius, -radius, -radius),
                     playerPos.add(radius, radius, radius))) {
@@ -118,6 +128,22 @@ public class BlockEspMod implements ClientModInitializer {
                 BlockState state = client.world.getBlockState(pos);
                 if (targets.contains(state.getBlock())) {
                     foundBlocks.add(pos.toImmutable());
+                }
+            }
+
+            // 2. Добавляем блоки из сохранённых чанков (далёкие)
+            for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> entry : ChunkTracker.getSavedChunks().entrySet()) {
+                ChunkPos chunkPos = entry.getKey();
+                double dist = Math.sqrt(
+                        Math.pow(chunkPos.getStartX() - playerPos.getX(), 2) +
+                        Math.pow(chunkPos.getStartZ() - playerPos.getZ(), 2)
+                );
+
+                // Добавляем только те, что ЗА пределами стандартной прорисовки
+                if (dist > radius * 16) {
+                    for (BlockPos pos : entry.getValue().keySet()) {
+                        foundBlocks.add(pos);
+                    }
                 }
             }
         });
