@@ -1,27 +1,23 @@
 {
-  "schemaVersion": 1,
-  "id": "mog-mod",
-  "version": "${version}",
-  "name": "mog mod",
-  "description": "Visual ESP mod for blocks",
-  "authors": ["mogayt"],
-  "contact": {},
-  "license": "CC0-1.0",
-  "environment": "client",
-  "entrypoints": {
-    "client": ["com.mogayt.BlockEspMod"]
-  },
-  "mixins": [
-    {
-      "config": "mog-mod.client.mixins.json",
-      "environment": "client"
-    }
-  ],
-  "depends": {
-    "fabricloader": ">=0.19.5",
-    "minecraft": "~1.21.4",
-    "java": ">=21",
-    "fabric-api": "*",
-    "fabric-key-binding-api-v1": "*"
-  }
+	"schemaVersion": 1,
+	"id": "mog-mod",
+	"version": "${version}",
+	"name": "mog mod",
+	"description": "Visual ESP mod for blocks",
+	"authors": ["mogayt"],
+	"contact": {},
+	"license": "CC0-1.0",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.mogayt.BlockEspMod"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
+		"fabric-api": "*",
+		"fabric-key-binding-api-v1": "*"
+	}
 }
