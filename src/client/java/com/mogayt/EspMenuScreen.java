@@ -7,6 +7,9 @@ import net.minecraft.text.Text;
 
 public class EspMenuScreen extends Screen {
 
+    // Координаты кнопки ESP (нужны для отслеживания правого клика)
+    private int espX, espY, espW, espH;
+
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
     }
@@ -15,14 +18,19 @@ public class EspMenuScreen extends Screen {
     protected void init() {
         int centerY = this.height / 2;
 
-        // ESP
+        espW = 200;
+        espH = 20;
+        espX = this.width / 2 - 100;
+        espY = centerY - 50;
+
+        // ESP (левый клик — вкл/выкл, правый — выбор руды)
         this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(BlockEspMod.espEnabled ? "ESP: ВКЛ" : "ESP: ВЫКЛ"),
+                Text.literal(getEspLabel()),
                 (button) -> {
                     BlockEspMod.espEnabled = !BlockEspMod.espEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.espEnabled ? "ESP: ВКЛ" : "ESP: ВЫКЛ"));
+                    button.setMessage(Text.literal(getEspLabel()));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 50, 200, 20).build());
+        ).dimensions(espX, espY, espW, espH).build());
 
         // Fullbright
         this.addDrawableChild(ButtonWidget.builder(
@@ -50,10 +58,32 @@ public class EspMenuScreen extends Screen {
         ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
     }
 
+    private String getEspLabel() {
+        String state = BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ";
+        return "ESP [" + BlockEspMod.getOreName() + "]: " + state;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Правый клик (button == 1) по кнопке ESP → открываем подменю выбора руды
+        if (button == 1
+                && mouseX >= espX && mouseX <= espX + espW
+                && mouseY >= espY && mouseY <= espY + espH) {
+            if (this.client != null) {
+                this.client.setScreen(new OreSelectScreen());
+            }
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer,
+                Text.literal("ПКМ по кнопке ESP — выбор руды"),
+                this.width / 2, 40, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
