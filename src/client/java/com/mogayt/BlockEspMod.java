@@ -89,9 +89,6 @@ public class BlockEspMod implements ClientModInitializer {
                 "category.mog-mod.keys"
         ));
 
-        Fullbright.register();
-        Freecam.register();
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
                 if (client.currentScreen == null) {
