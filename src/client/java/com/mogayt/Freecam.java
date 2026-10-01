@@ -27,10 +27,9 @@ public class Freecam {
         camPitch = client.player.getPitch();
     }
 
-    private static void tick(MinecraftClient client) {
+    public static void tick(MinecraftClient client) {
         if (!enabled || client.player == null) return;
 
-        // Читаем WASD для полёта камеры
         double forward = 0, strafe = 0, up = 0;
         if (client.options.forwardKey.isPressed()) forward += 1;
         if (client.options.backKey.isPressed()) forward -= 1;
@@ -39,7 +38,6 @@ public class Freecam {
         if (client.options.jumpKey.isPressed()) up += 1;
         if (client.options.sneakKey.isPressed()) up -= 1;
 
-        // Направление камеры = куда смотрит игрок
         camYaw = client.player.getYaw();
         camPitch = client.player.getPitch();
 
