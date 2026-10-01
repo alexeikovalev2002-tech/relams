@@ -23,7 +23,13 @@ import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
 
-    private static final Set<Block> TARGET_BLOCKS = new HashSet<>();
+    // 0 = Алмазы, 1 = Железо, 2 = Уголь
+    public static int oreType = 0;
+
+    private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
+    private static final Set<Block> IRON_BLOCKS = new HashSet<>();
+    private static final Set<Block> COAL_BLOCKS = new HashSet<>();
+
     public static boolean espEnabled = true;
 
     private static KeyBinding openMenuKey;
@@ -48,9 +54,30 @@ public class BlockEspMod implements ClientModInitializer {
     );
 
     static {
-        TARGET_BLOCKS.add(Blocks.DIAMOND_ORE);
-        TARGET_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
-        TARGET_BLOCKS.add(Blocks.ANCIENT_DEBRIS);
+        DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
+        DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
+
+        IRON_BLOCKS.add(Blocks.IRON_ORE);
+        IRON_BLOCKS.add(Blocks.DEEPSLATE_IRON_ORE);
+
+        COAL_BLOCKS.add(Blocks.COAL_ORE);
+        COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
+    }
+
+    public static Set<Block> getTargetBlocks() {
+        switch (oreType) {
+            case 1: return IRON_BLOCKS;
+            case 2: return COAL_BLOCKS;
+            default: return DIAMOND_BLOCKS;
+        }
+    }
+
+    public static String getOreName() {
+        switch (oreType) {
+            case 1: return "Железо";
+            case 2: return "Уголь";
+            default: return "Алмазы";
+        }
     }
 
     @Override
@@ -62,6 +89,9 @@ public class BlockEspMod implements ClientModInitializer {
                 "category.mog-mod.keys"
         ));
 
+        Fullbright.register();
+        Freecam.register();
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
                 if (client.currentScreen == null) {
@@ -69,9 +99,9 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // <-- ВОТ ЭТА СТРОЧКА: вызывает Fullbright каждый тик
             Fullbright.tick();
             Freecam.tick(client);
+
             if (!espEnabled || client.world == null || client.player == null) return;
 
             tickCounter++;
@@ -82,12 +112,14 @@ public class BlockEspMod implements ClientModInitializer {
             BlockPos playerPos = client.player.getBlockPos();
             int radius = 24;
 
+            Set<Block> targets = getTargetBlocks();
+
             for (BlockPos pos : BlockPos.iterate(
                     playerPos.add(-radius, -radius, -radius),
                     playerPos.add(radius, radius, radius))) {
 
                 BlockState state = client.world.getBlockState(pos);
-                if (TARGET_BLOCKS.contains(state.getBlock())) {
+                if (targets.contains(state.getBlock())) {
                     foundBlocks.add(pos.toImmutable());
                 }
             }
