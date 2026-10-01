@@ -22,9 +22,14 @@ public class CameraMixin {
     private void onUpdate(BlockView area, Entity focusedEntity, boolean thirdPerson,
                           boolean inverseView, float tickDelta, CallbackInfo ci) {
         if (Freecam.enabled) {
-            this.pos = new Vec3d(Freecam.camX, Freecam.camY, Freecam.camZ);
-            this.yaw = Freecam.camYaw;
-            this.pitch = Freecam.camPitch;
+            // Плавная интерполяция между прошлым и текущим тиком
+            double x = Freecam.prevCamX + (Freecam.camX - Freecam.prevCamX) * tickDelta;
+            double y = Freecam.prevCamY + (Freecam.camY - Freecam.prevCamY) * tickDelta;
+            double z = Freecam.prevCamZ + (Freecam.camZ - Freecam.prevCamZ) * tickDelta;
+
+            this.pos = new Vec3d(x, y, z);
+            this.yaw = Freecam.prevCamYaw + (Freecam.camYaw - Freecam.prevCamYaw) * tickDelta;
+            this.pitch = Freecam.prevCamPitch + (Freecam.camPitch - Freecam.prevCamPitch) * tickDelta;
         }
     }
 }
