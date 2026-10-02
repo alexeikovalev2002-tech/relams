@@ -1,12 +1,13 @@
 package com.mogayt.mixin;
 
 import com.mogayt.Optimizer;
+import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.particle.ParticleEffect;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ParticleManager.class)
 public class ParticleMixin {
@@ -18,9 +19,9 @@ public class ParticleMixin {
     )
     private void onAddParticle(ParticleEffect parameters, double x, double y, double z,
                                 double velocityX, double velocityY, double velocityZ,
-                                CallbackInfo ci) {
+                                CallbackInfoReturnable<Particle> cir) {
         if (Optimizer.enabled) {
-            ci.cancel(); // блокируем создание ЛЮБОЙ частицы
+            cir.setReturnValue(null); // возвращаем null — частица не создаётся
         }
     }
 }
