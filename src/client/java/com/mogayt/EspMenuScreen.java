@@ -7,7 +7,6 @@ import net.minecraft.text.Text;
 
 public class EspMenuScreen extends Screen {
 
-    // Координаты кнопки ESP (нужны для отслеживания правого клика)
     private int espX, espY, espW, espH;
 
     public EspMenuScreen() {
@@ -21,9 +20,9 @@ public class EspMenuScreen extends Screen {
         espW = 200;
         espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 60;
+        espY = centerY - 70;
 
-        // ESP (левый клик — вкл/выкл, правый — выбор руды)
+        // ESP
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
                 (button) -> {
@@ -39,7 +38,7 @@ public class EspMenuScreen extends Screen {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 40, 200, 20).build());
 
         // Freecam
         this.addDrawableChild(ButtonWidget.builder(
@@ -49,22 +48,31 @@ public class EspMenuScreen extends Screen {
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 10, 200, 20).build());
 
-        // Distant Horizons (дальняя прорисовка)
+        // Distant Horizons
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"),
                 (button) -> {
                     BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
                     button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 20, 200, 20).build());
+
+        // Fix Lag
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
+                (button) -> {
+                    Optimizer.enabled = !Optimizer.enabled;
+                    button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
+                }
+        ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
 
         // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 70, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 90, 200, 20).build());
     }
 
     private String getEspLabel() {
