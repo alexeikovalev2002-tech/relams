@@ -21,7 +21,7 @@ public class EspMenuScreen extends Screen {
         espW = 200;
         espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 50;
+        espY = centerY - 60;
 
         // ESP (левый клик — вкл/выкл, правый — выбор руды)
         this.addDrawableChild(ButtonWidget.builder(
@@ -39,7 +39,7 @@ public class EspMenuScreen extends Screen {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
 
         // Freecam
         this.addDrawableChild(ButtonWidget.builder(
@@ -49,13 +49,22 @@ public class EspMenuScreen extends Screen {
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 10, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
+
+        // Distant Horizons (дальняя прорисовка)
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"),
+                (button) -> {
+                    BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
+                    button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
+                }
+        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
 
         // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 70, 200, 20).build());
     }
 
     private String getEspLabel() {
@@ -65,7 +74,6 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Правый клик (button == 1) по кнопке ESP → открываем подменю выбора руды
         if (button == 1
                 && mouseX >= espX && mouseX <= espX + espW
                 && mouseY >= espY && mouseY <= espY + espH) {
