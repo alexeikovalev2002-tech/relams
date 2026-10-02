@@ -26,7 +26,7 @@ import java.util.Set;
 public class BlockEspMod implements ClientModInitializer {
 
     public static int oreType = 0;
-    public static boolean distantEnabled = false; // <-- НОВЫЙ ФЛАГ
+    public static boolean distantEnabled = false;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
@@ -37,7 +37,7 @@ public class BlockEspMod implements ClientModInitializer {
     private static KeyBinding openMenuKey;
 
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
-    private static final List<BlockPos> distantBlocks = new ArrayList<>(); // <-- для далёких
+    private static final List<BlockPos> distantBlocks = new ArrayList<>();
     private static int tickCounter = 0;
 
     private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
@@ -102,6 +102,7 @@ public class BlockEspMod implements ClientModInitializer {
             }
 
             Fullbright.tick();
+            Optimizer.tick(); // <-- ДОБАВЛЕНО
 
             if (client.player != null && client.player.age % 100 == 0) {
                 ChunkTracker.cleanup();
@@ -120,7 +121,6 @@ public class BlockEspMod implements ClientModInitializer {
             int radius = 24;
             Set<Block> targets = getTargetBlocks();
 
-            // Близкие блоки
             for (BlockPos pos : BlockPos.iterate(
                     playerPos.add(-radius, -radius, -radius),
                     playerPos.add(radius, radius, radius))) {
@@ -130,7 +130,6 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // Далёкие блоки — только если включен Distant
             if (distantEnabled) {
                 for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> entry : ChunkTracker.getSavedChunks().entrySet()) {
                     ChunkPos chunkPos = entry.getKey();
@@ -163,7 +162,6 @@ public class BlockEspMod implements ClientModInitializer {
 
             VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
-            // Близкие — красные
             for (BlockPos pos : foundBlocks) {
                 double x = pos.getX() - cameraPos.x;
                 double y = pos.getY() - cameraPos.y;
@@ -177,7 +175,6 @@ public class BlockEspMod implements ClientModInitializer {
                 );
             }
 
-            // Далёкие — синие
             for (BlockPos pos : distantBlocks) {
                 double x = pos.getX() - cameraPos.x;
                 double y = pos.getY() - cameraPos.y;
