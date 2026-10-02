@@ -1,8 +1,6 @@
 package com.mogayt;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.CloudRenderMode;
-import net.minecraft.client.option.GraphicsMode;
 
 public class Optimizer {
 
@@ -13,9 +11,6 @@ public class Optimizer {
     private static boolean prevEntityShadows = true;
     private static boolean prevAo = true;
     private static double prevEntityDistance = 1.0;
-    private static int prevParticles = 0; // 0=ALL, 1=DECREASED, 2=MINIMAL
-    private static CloudRenderMode prevClouds = CloudRenderMode.FANCY;
-    private static GraphicsMode prevGraphics = GraphicsMode.FANCY;
 
     public static void tick() {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -26,17 +21,11 @@ public class Optimizer {
             prevEntityShadows = client.options.getEntityShadows().getValue();
             prevAo = client.options.getAo().getValue();
             prevEntityDistance = client.options.getEntityDistanceScaling().getValue();
-            prevParticles = client.options.getParticles().getValue();
-            prevClouds = client.options.getCloudRenderMode().getValue();
-            prevGraphics = client.options.getGraphicsMode().getValue();
 
             client.options.getBobView().setValue(false);
             client.options.getEntityShadows().setValue(false);
             client.options.getAo().setValue(false);
             client.options.getEntityDistanceScaling().setValue(0.5);
-            client.options.getParticles().setValue(2); // MINIMAL
-            client.options.getCloudRenderMode().setValue(CloudRenderMode.OFF);
-            client.options.getGraphicsMode().setValue(GraphicsMode.FAST);
 
             wasEnabled = true;
         } else if (!enabled && wasEnabled) {
@@ -44,9 +33,6 @@ public class Optimizer {
             client.options.getEntityShadows().setValue(prevEntityShadows);
             client.options.getAo().setValue(prevAo);
             client.options.getEntityDistanceScaling().setValue(prevEntityDistance);
-            client.options.getParticles().setValue(prevParticles);
-            client.options.getCloudRenderMode().setValue(prevClouds);
-            client.options.getGraphicsMode().setValue(prevGraphics);
 
             wasEnabled = false;
         }
