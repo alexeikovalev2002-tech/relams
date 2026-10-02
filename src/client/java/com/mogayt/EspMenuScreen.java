@@ -1,110 +1,192 @@
 package com.mogayt;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
+import org.lwjgl.glfw.GLFW;
 
-public class EspMenuScreen extends Screen {
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-    private int espX, espY, espW, espH;
+public class BlockEspMod implements ClientModInitializer {
 
-    public EspMenuScreen() {
-        super(Text.literal("Mog Mod Menu"));
+    public static int oreType = 0;
+    public static boolean distantEnabled = false;
+
+    private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
+    private static final Set<Block> IRON_BLOCKS = new HashSet<>();
+    private static final Set<Block> COAL_BLOCKS = new HashSet<>();
+
+    public static boolean espEnabled = true;
+
+    private static KeyBinding openMenuKey;
+
+    private static final List<BlockPos> foundBlocks = new ArrayList<>();
+    private static final List<BlockPos> distantBlocks = new ArrayList<>();
+    private static int tickCounter = 0;
+
+    private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
+            "mog-mod-through-walls",
+            VertexFormats.LINES,
+            VertexFormat.DrawMode.LINES,
+            1536,
+            false,
+            true,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .program(RenderPhase.LINES_PROGRAM)
+                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+                    .writeMaskState(RenderPhase.COLOR_MASK)
+                    .cull(RenderPhase.DISABLE_CULLING)
+                    .build(false)
+    );
+
+    static {
+        DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
+        DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
+
+        IRON_BLOCKS.add(Blocks.IRON_ORE);
+        IRON_BLOCKS.add(Blocks.DEEPSLATE_IRON_ORE);
+
+        COAL_BLOCKS.add(Blocks.COAL_ORE);
+        COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
     }
 
-    @Override
-    protected void init() {
-        int centerY = this.height / 2;
-
-        espW = 200;
-        espH = 20;
-        espX = this.width / 2 - 100;
-        espY = centerY - 70;
-
-        // ESP
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(getEspLabel()),
-                (button) -> {
-                    BlockEspMod.espEnabled = !BlockEspMod.espEnabled;
-                    button.setMessage(Text.literal(getEspLabel()));
-                }
-        ).dimensions(espX, espY, espW, espH).build());
-
-        // Fullbright
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
-                (button) -> {
-                    Fullbright.enabled = !Fullbright.enabled;
-                    button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
-                }
-        ).dimensions(this.width / 2 - 100, centerY - 40, 200, 20).build());
-
-        // Freecam
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"),
-                (button) -> {
-                    Freecam.enabled = !Freecam.enabled;
-                    if (Freecam.enabled) Freecam.onEnable();
-                    button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
-                }
-        ).dimensions(this.width / 2 - 100, centerY - 10, 200, 20).build());
-
-        // Distant Horizons
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"),
-                (button) -> {
-                    BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 20, 200, 20).build());
-
-        // Fix Lag
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
-                (button) -> {
-                    Optimizer.enabled = !Optimizer.enabled;
-                    button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
-
-        // Закрыть
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("Закрыть"),
-                (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 90, 200, 20).build());
-    }
-
-    private String getEspLabel() {
-        String state = BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ";
-        return "ESP [" + BlockEspMod.getOreName() + "]: " + state;
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 1
-                && mouseX >= espX && mouseX <= espX + espW
-                && mouseY >= espY && mouseY <= espY + espH) {
-            if (this.client != null) {
-                this.client.setScreen(new OreSelectScreen());
-            }
-            return true;
+    public static Set<Block> getTargetBlocks() {
+        switch (oreType) {
+            case 1: return IRON_BLOCKS;
+            case 2: return COAL_BLOCKS;
+            default: return DIAMOND_BLOCKS;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    public static String getOreName() {
+        switch (oreType) {
+            case 1: return "Железо";
+            case 2: return "Уголь";
+            default: return "Алмазы";
+        }
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
-        context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопке ESP — выбор руды"),
-                this.width / 2, 40, 0xAAAAAA);
-        super.render(context, mouseX, mouseY, delta);
-    }
+    public void onInitializeClient() {
+        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.mog-mod.open_menu",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_L,                  // <-- клавиша L
+                "category.mog-mod.keys"
+        ));
 
-    @Override
-    public boolean shouldPause() {
-        return false;
+        ChunkTracker.register();
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (openMenuKey.wasPressed()) {
+                if (client.currentScreen == null) {
+                    client.setScreen(new EspMenuScreen());
+                }
+            }
+
+            Fullbright.tick();
+            Optimizer.tick();
+
+            if (client.player != null && client.player.age % 100 == 0) {
+                ChunkTracker.cleanup();
+            }
+
+            if (!espEnabled || client.world == null || client.player == null) return;
+
+            tickCounter++;
+            if (tickCounter < 10) return;
+            tickCounter = 0;
+
+            foundBlocks.clear();
+            distantBlocks.clear();
+
+            BlockPos playerPos = client.player.getBlockPos();
+            int radius = 24;
+            Set<Block> targets = getTargetBlocks();
+
+            for (BlockPos pos : BlockPos.iterate(
+                    playerPos.add(-radius, -radius, -radius),
+                    playerPos.add(radius, radius, radius))) {
+                BlockState state = client.world.getBlockState(pos);
+                if (targets.contains(state.getBlock())) {
+                    foundBlocks.add(pos.toImmutable());
+                }
+            }
+
+            if (distantEnabled) {
+                for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> entry : ChunkTracker.getSavedChunks().entrySet()) {
+                    ChunkPos chunkPos = entry.getKey();
+                    double dist = Math.sqrt(
+                            Math.pow(chunkPos.getStartX() - playerPos.getX(), 2) +
+                            Math.pow(chunkPos.getStartZ() - playerPos.getZ(), 2)
+                    );
+
+                    if (dist > radius * 16) {
+                        for (BlockPos pos : entry.getValue().keySet()) {
+                            distantBlocks.add(pos);
+                        }
+                    }
+                }
+            }
+        });
+
+        WorldRenderEvents.LAST.register((worldRenderContext) -> {
+            if (!espEnabled) return;
+
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.world == null || client.player == null) return;
+
+            MatrixStack matrices = worldRenderContext.matrixStack();
+            if (matrices == null) return;
+
+            Vec3d cameraPos = worldRenderContext.camera().getPos();
+            VertexConsumerProvider consumers = worldRenderContext.consumers();
+            if (consumers == null) return;
+
+            VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
+
+            for (BlockPos pos : foundBlocks) {
+                double x = pos.getX() - cameraPos.x;
+                double y = pos.getY() - cameraPos.y;
+                double z = pos.getZ() - cameraPos.z;
+
+                VertexRendering.drawBox(
+                        matrices, buffer,
+                        x, y, z,
+                        x + 1, y + 1, z + 1,
+                        1.0f, 0.0f, 0.0f, 1.0f
+                );
+            }
+
+            for (BlockPos pos : distantBlocks) {
+                double x = pos.getX() - cameraPos.x;
+                double y = pos.getY() - cameraPos.y;
+                double z = pos.getZ() - cameraPos.z;
+
+                VertexRendering.drawBox(
+                        matrices, buffer,
+                        x, y, z,
+                        x + 1, y + 1, z + 1,
+                        0.2f, 0.5f, 1.0f, 1.0f
+                );
+            }
+        });
     }
 }
