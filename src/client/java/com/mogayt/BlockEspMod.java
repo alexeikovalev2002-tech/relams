@@ -88,7 +88,7 @@ public class BlockEspMod implements ClientModInitializer {
         openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.mog-mod.open_menu",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_L,
+                GLFW.GLFW_KEY_H,                // <-- теперь H
                 "category.mog-mod.keys"
         ));
 
@@ -189,4 +189,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                }
+                     }
