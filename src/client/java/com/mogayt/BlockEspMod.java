@@ -26,7 +26,7 @@ import java.util.Set;
 public class BlockEspMod implements ClientModInitializer {
 
     // ===== РУДЫ =====
-    public static int oreType = 0; // 0=Алмазы, 1=Железо, 2=Уголь
+    public static int oreType = 0;
     public static boolean espEnabled = true;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
@@ -34,13 +34,22 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> COAL_BLOCKS = new HashSet<>();
 
     // ===== СУНДУКИ =====
-    public static int chestType = 0; // 0=Все, 1=Обычные, 2=Шалкеры, 3=Эндер
+    public static int chestType = 0;
     public static boolean chestEspEnabled = false;
 
-    private static final Set<Block> ALL_CHESTS = new HashSet<>();
     private static final Set<Block> NORMAL_CHESTS = new HashSet<>();
     private static final Set<Block> SHULKER_CHESTS = new HashSet<>();
+    private static final Set<Block> BARREL_BLOCKS = new HashSet<>();
     private static final Set<Block> ENDER_CHESTS = new HashSet<>();
+    private static final Set<Block> BED_BLOCKS = new HashSet<>();
+    private static final Set<Block> ALL_CHESTS = new HashSet<>();
+
+    // Цвета [R, G, B, A]
+    private static final float[] COLOR_CHEST       = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
+    private static final float[] COLOR_SHULKER     = {0.2f, 0.6f, 1.0f, 1.0f}; // Голубой
+    private static final float[] COLOR_BARREL      = {0.55f, 0.27f, 0.07f, 1.0f}; // Коричневый
+    private static final float[] COLOR_ENDER       = {0.05f, 0.0f, 0.15f, 1.0f}; // Чёрный
+    private static final float[] COLOR_BED         = {1.0f, 0.0f, 0.0f, 1.0f}; // Красный
 
     // ===== DAЛЁКАЯ ПРОРИСОВКА =====
     public static boolean distantEnabled = false;
@@ -49,7 +58,11 @@ public class BlockEspMod implements ClientModInitializer {
 
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static final List<BlockPos> distantBlocks = new ArrayList<>();
-    private static final List<BlockPos> chestBlocks = new ArrayList<>();
+    private static final List<BlockPos> foundChests = new ArrayList<>();
+    private static final List<BlockPos> foundShulkers = new ArrayList<>();
+    private static final List<BlockPos> foundBarrels = new ArrayList<>();
+    private static final List<BlockPos> foundEnderChests = new ArrayList<>();
+    private static final List<BlockPos> foundBeds = new ArrayList<>();
     private static int tickCounter = 0;
 
     private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
@@ -69,7 +82,7 @@ public class BlockEspMod implements ClientModInitializer {
     );
 
     static {
-        // Руды
+        // ===== РУДЫ =====
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
 
@@ -79,9 +92,13 @@ public class BlockEspMod implements ClientModInitializer {
         COAL_BLOCKS.add(Blocks.COAL_ORE);
         COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
 
-        // Сундуки
+        // ===== СУНДУКИ =====
         NORMAL_CHESTS.add(Blocks.CHEST);
         NORMAL_CHESTS.add(Blocks.TRAPPED_CHEST);
+
+        BARREL_BLOCKS.add(Blocks.BARREL);
+
+        ENDER_CHESTS.add(Blocks.ENDER_CHEST);
 
         SHULKER_CHESTS.add(Blocks.SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.WHITE_SHULKER_BOX);
@@ -101,11 +118,29 @@ public class BlockEspMod implements ClientModInitializer {
         SHULKER_CHESTS.add(Blocks.RED_SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.BLACK_SHULKER_BOX);
 
-        ENDER_CHESTS.add(Blocks.ENDER_CHEST);
+        // Кровати (16 цветов)
+        BED_BLOCKS.add(Blocks.WHITE_BED);
+        BED_BLOCKS.add(Blocks.ORANGE_BED);
+        BED_BLOCKS.add(Blocks.MAGENTA_BED);
+        BED_BLOCKS.add(Blocks.LIGHT_BLUE_BED);
+        BED_BLOCKS.add(Blocks.YELLOW_BED);
+        BED_BLOCKS.add(Blocks.LIME_BED);
+        BED_BLOCKS.add(Blocks.PINK_BED);
+        BED_BLOCKS.add(Blocks.GRAY_BED);
+        BED_BLOCKS.add(Blocks.LIGHT_GRAY_BED);
+        BED_BLOCKS.add(Blocks.CYAN_BED);
+        BED_BLOCKS.add(Blocks.PURPLE_BED);
+        BED_BLOCKS.add(Blocks.BLUE_BED);
+        BED_BLOCKS.add(Blocks.BROWN_BED);
+        BED_BLOCKS.add(Blocks.GREEN_BED);
+        BED_BLOCKS.add(Blocks.RED_BED);
+        BED_BLOCKS.add(Blocks.BLACK_BED);
 
         ALL_CHESTS.addAll(NORMAL_CHESTS);
         ALL_CHESTS.addAll(SHULKER_CHESTS);
+        ALL_CHESTS.addAll(BARREL_BLOCKS);
         ALL_CHESTS.addAll(ENDER_CHESTS);
+        ALL_CHESTS.addAll(BED_BLOCKS);
     }
 
     public static Set<Block> getTargetBlocks() {
@@ -124,20 +159,13 @@ public class BlockEspMod implements ClientModInitializer {
         }
     }
 
-    public static Set<Block> getChestBlocks() {
-        switch (chestType) {
-            case 1: return NORMAL_CHESTS;
-            case 2: return SHULKER_CHESTS;
-            case 3: return ENDER_CHESTS;
-            default: return ALL_CHESTS;
-        }
-    }
-
     public static String getChestName() {
         switch (chestType) {
             case 1: return "Сундуки";
             case 2: return "Шалкеры";
-            case 3: return "Эндер";
+            case 3: return "Бочки";
+            case 4: return "Эндер";
+            case 5: return "Кровати";
             default: return "Все";
         }
     }
@@ -176,7 +204,11 @@ public class BlockEspMod implements ClientModInitializer {
 
             foundBlocks.clear();
             distantBlocks.clear();
-            chestBlocks.clear();
+            foundChests.clear();
+            foundShulkers.clear();
+            foundBarrels.clear();
+            foundEnderChests.clear();
+            foundBeds.clear();
 
             BlockPos playerPos = client.player.getBlockPos();
             int radius = 24;
@@ -200,7 +232,6 @@ public class BlockEspMod implements ClientModInitializer {
                                 Math.pow(chunkPos.getStartX() - playerPos.getX(), 2) +
                                 Math.pow(chunkPos.getStartZ() - playerPos.getZ(), 2)
                         );
-
                         if (dist > radius * 16) {
                             for (BlockPos pos : entry.getValue().keySet()) {
                                 distantBlocks.add(pos);
@@ -212,14 +243,28 @@ public class BlockEspMod implements ClientModInitializer {
 
             // ===== СУНДУКИ =====
             if (chestEspEnabled) {
-                Set<Block> chests = getChestBlocks();
                 for (BlockPos pos : BlockPos.iterate(
                         playerPos.add(-radius, -radius, -radius),
                         playerPos.add(radius, radius, radius))) {
                     BlockState state = client.world.getBlockState(pos);
-                    if (chests.contains(state.getBlock())) {
-                        chestBlocks.add(pos.toImmutable());
-                    }
+                    Block block = state.getBlock();
+
+                    if (!ALL_CHESTS.contains(block)) continue;
+
+                    // Фильтр по выбранному типу
+                    if (chestType == 1 && !NORMAL_CHESTS.contains(block)) continue;
+                    if (chestType == 2 && !SHULKER_CHESTS.contains(block)) continue;
+                    if (chestType == 3 && !BARREL_BLOCKS.contains(block)) continue;
+                    if (chestType == 4 && !ENDER_CHESTS.contains(block)) continue;
+                    if (chestType == 5 && !BED_BLOCKS.contains(block)) continue;
+
+                    // Распределяем по спискам
+                    BlockPos immutable = pos.toImmutable();
+                    if (NORMAL_CHESTS.contains(block)) foundChests.add(immutable);
+                    else if (SHULKER_CHESTS.contains(block)) foundShulkers.add(immutable);
+                    else if (BARREL_BLOCKS.contains(block)) foundBarrels.add(immutable);
+                    else if (ENDER_CHESTS.contains(block)) foundEnderChests.add(immutable);
+                    else if (BED_BLOCKS.contains(block)) foundBeds.add(immutable);
                 }
             }
         });
@@ -237,51 +282,41 @@ public class BlockEspMod implements ClientModInitializer {
 
             VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
-            // Руды — красные
+            // ===== РУДЫ =====
             if (espEnabled) {
                 for (BlockPos pos : foundBlocks) {
-                    double x = pos.getX() - cameraPos.x;
-                    double y = pos.getY() - cameraPos.y;
-                    double z = pos.getZ() - cameraPos.z;
-
-                    VertexRendering.drawBox(
-                            matrices, buffer,
-                            x, y, z,
-                            x + 1, y + 1, z + 1,
-                            1.0f, 0.0f, 0.0f, 1.0f
-                    );
+                    drawBox(matrices, buffer, pos, cameraPos, 1.0f, 0.0f, 0.0f, 1.0f);
                 }
-
-                // Далёкие — синие
                 for (BlockPos pos : distantBlocks) {
-                    double x = pos.getX() - cameraPos.x;
-                    double y = pos.getY() - cameraPos.y;
-                    double z = pos.getZ() - cameraPos.z;
-
-                    VertexRendering.drawBox(
-                            matrices, buffer,
-                            x, y, z,
-                            x + 1, y + 1, z + 1,
-                            0.2f, 0.5f, 1.0f, 1.0f
-                    );
+                    drawBox(matrices, buffer, pos, cameraPos, 0.2f, 0.5f, 1.0f, 1.0f);
                 }
             }
 
-            // Сундуки — зелёные
+            // ===== СУНДУКИ (каждый тип свой цвет) =====
             if (chestEspEnabled) {
-                for (BlockPos pos : chestBlocks) {
-                    double x = pos.getX() - cameraPos.x;
-                    double y = pos.getY() - cameraPos.y;
-                    double z = pos.getZ() - cameraPos.z;
-
-                    VertexRendering.drawBox(
-                            matrices, buffer,
-                            x, y, z,
-                            x + 1, y + 1, z + 1,
-                            0.0f, 1.0f, 0.0f, 1.0f
-                    );
-                }
+                for (BlockPos pos : foundChests)
+                    drawBox(matrices, buffer, pos, cameraPos, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], COLOR_CHEST[3]);
+                for (BlockPos pos : foundShulkers)
+                    drawBox(matrices, buffer, pos, cameraPos, COLOR_SHULKER[0], COLOR_SHULKER[1], COLOR_SHULKER[2], COLOR_SHULKER[3]);
+                for (BlockPos pos : foundBarrels)
+                    drawBox(matrices, buffer, pos, cameraPos, COLOR_BARREL[0], COLOR_BARREL[1], COLOR_BARREL[2], COLOR_BARREL[3]);
+                for (BlockPos pos : foundEnderChests)
+                    drawBox(matrices, buffer, pos, cameraPos, COLOR_ENDER[0], COLOR_ENDER[1], COLOR_ENDER[2], COLOR_ENDER[3]);
+                for (BlockPos pos : foundBeds)
+                    drawBox(matrices, buffer, pos, cameraPos, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], COLOR_BED[3]);
             }
         });
     }
-}
+
+    private static void drawBox(MatrixStack matrices, VertexConsumer buffer,
+                                BlockPos pos, Vec3d cameraPos,
+                                float r, float g, float b, float a) {
+        double x = pos.getX() - cameraPos.x;
+        double y = pos.getY() - cameraPos.y;
+        double z = pos.getZ() - cameraPos.z;
+        VertexRendering.drawBox(matrices, buffer,
+                x, y, z,
+                x + 1, y + 1, z + 1,
+                r, g, b, a);
+    }
+        }
