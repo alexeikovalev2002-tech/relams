@@ -370,10 +370,15 @@ public class BlockEspMod implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
-
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.textRenderer == null) return;
+
+            // ОТЛАДКА — всегда в левом верхнем углу
+            drawContext.drawTextWithShadow(client.textRenderer,
+                    Text.literal("HUD OK, players: " + playerMarkers.size()),
+                    10, 10, 0xFFFF00FF);
+
+            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
 
             for (PlayerMarker m : playerMarkers) {
                 int nameW = client.textRenderer.getWidth(m.name);
@@ -408,4 +413,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-}
+                                         }
