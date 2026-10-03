@@ -65,7 +65,7 @@ public class EspMenuScreen extends Screen {
 
         // ChatBind
         this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("ChatBind: " + ChatBind.command),
+                Text.literal("ChatBind [" + ChatBind.binds.size() + " шт]"),
                 (button) -> { }
         ).dimensions(chatX, chatY, chatW, chatH).build());
 
