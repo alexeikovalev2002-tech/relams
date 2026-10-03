@@ -16,36 +16,34 @@ public class ChestSelectScreen extends Screen {
         int centerY = this.height / 2;
 
         this.addDrawableChild(ButtonWidget.builder(
-                Text.literal((BlockEspMod.chestType == 0 ? "> " : "") + "Все сундуки"),
-                (button) -> {
-                    BlockEspMod.chestType = 0;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY - 50, 200, 20).build());
+                Text.literal((BlockEspMod.chestType == 0 ? "> " : "") + "Все"),
+                (button) -> { BlockEspMod.chestType = 0; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 80, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal((BlockEspMod.chestType == 1 ? "> " : "") + "Обычные сундуки"),
-                (button) -> {
-                    BlockEspMod.chestType = 1;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY - 20, 200, 20).build());
+                (button) -> { BlockEspMod.chestType = 1; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 55, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal((BlockEspMod.chestType == 2 ? "> " : "") + "Шалкеры"),
-                (button) -> {
-                    BlockEspMod.chestType = 2;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 10, 200, 20).build());
+                (button) -> { BlockEspMod.chestType = 2; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
-                Text.literal((BlockEspMod.chestType == 3 ? "> " : "") + "Эндер-сундуки"),
-                (button) -> {
-                    BlockEspMod.chestType = 3;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 40, 200, 20).build());
+                Text.literal((BlockEspMod.chestType == 3 ? "> " : "") + "Бочки"),
+                (button) -> { BlockEspMod.chestType = 3; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 5, 200, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal((BlockEspMod.chestType == 4 ? "> " : "") + "Эндер-сундуки"),
+                (button) -> { BlockEspMod.chestType = 4; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY + 20, 200, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal((BlockEspMod.chestType == 5 ? "> " : "") + "Кровати"),
+                (button) -> { BlockEspMod.chestType = 5; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY + 45, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
@@ -61,6 +59,9 @@ public class ChestSelectScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer,
+                Text.literal("Сундук=оранж, Шалкер=голуб, Бочка=корич, Эндер=чёрн, Кровать=красн"),
+                this.width / 2, 40, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
