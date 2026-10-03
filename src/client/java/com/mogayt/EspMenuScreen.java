@@ -8,6 +8,7 @@ import net.minecraft.text.Text;
 public class EspMenuScreen extends Screen {
 
     private int espX, espY, espW, espH;
+    private int chestX, chestY, chestW, chestH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -20,9 +21,14 @@ public class EspMenuScreen extends Screen {
         espW = 200;
         espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 70;
+        espY = centerY - 90;
 
-        // ESP
+        chestW = 200;
+        chestH = 20;
+        chestX = this.width / 2 - 100;
+        chestY = centerY - 60;
+
+        // ESP руды
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
                 (button) -> {
@@ -31,6 +37,15 @@ public class EspMenuScreen extends Screen {
                 }
         ).dimensions(espX, espY, espW, espH).build());
 
+        // ESP сундуки
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(getChestLabel()),
+                (button) -> {
+                    BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled;
+                    button.setMessage(Text.literal(getChestLabel()));
+                }
+        ).dimensions(chestX, chestY, chestW, chestH).build());
+
         // Fullbright
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
@@ -38,7 +53,7 @@ public class EspMenuScreen extends Screen {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 40, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
 
         // Freecam
         this.addDrawableChild(ButtonWidget.builder(
@@ -48,7 +63,7 @@ public class EspMenuScreen extends Screen {
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 10, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
 
         // Distant Horizons
         this.addDrawableChild(ButtonWidget.builder(
@@ -57,7 +72,7 @@ public class EspMenuScreen extends Screen {
                     BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
                     button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
 
         // Fix Lag
         this.addDrawableChild(ButtonWidget.builder(
@@ -66,13 +81,13 @@ public class EspMenuScreen extends Screen {
                     Optimizer.enabled = !Optimizer.enabled;
                     button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 60, 200, 20).build());
 
         // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 90, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 100, 200, 20).build());
     }
 
     private String getEspLabel() {
@@ -80,13 +95,28 @@ public class EspMenuScreen extends Screen {
         return "ESP [" + BlockEspMod.getOreName() + "]: " + state;
     }
 
+    private String getChestLabel() {
+        String state = BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ";
+        return "ChestESP [" + BlockEspMod.getChestName() + "]: " + state;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // ПКМ по кнопке руды
         if (button == 1
                 && mouseX >= espX && mouseX <= espX + espW
                 && mouseY >= espY && mouseY <= espY + espH) {
             if (this.client != null) {
                 this.client.setScreen(new OreSelectScreen());
+            }
+            return true;
+        }
+        // ПКМ по кнопке сундуков
+        if (button == 1
+                && mouseX >= chestX && mouseX <= chestX + chestW
+                && mouseY >= chestY && mouseY <= chestY + chestH) {
+            if (this.client != null) {
+                this.client.setScreen(new ChestSelectScreen());
             }
             return true;
         }
@@ -98,7 +128,7 @@ public class EspMenuScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопке ESP — выбор руды"),
+                Text.literal("ПКМ по ESP или ChestESP — выбор"),
                 this.width / 2, 40, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
