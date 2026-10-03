@@ -88,7 +88,7 @@ public class BlockEspMod implements ClientModInitializer {
         openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.mog-mod.open_menu",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,                // <-- теперь H
+                GLFW.GLFW_KEY_H,
                 "category.mog-mod.keys"
         ));
 
@@ -103,6 +103,7 @@ public class BlockEspMod implements ClientModInitializer {
 
             Fullbright.tick();
             Optimizer.tick();
+            Freecam.tick(client);      // <-- ВОТ ЭТУ СТРОЧКУ ДОБАВИЛ
 
             if (client.player != null && client.player.age % 100 == 0) {
                 ChunkTracker.cleanup();
@@ -189,4 +190,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                     }
+}
