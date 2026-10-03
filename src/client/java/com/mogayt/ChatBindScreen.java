@@ -8,14 +8,6 @@ import net.minecraft.text.Text;
 
 public class ChatBindScreen extends Screen {
 
-    private TextFieldWidget commandField;
-
-    private static final String[] PRESETS = {
-            "/warp pvp",
-            "/warp mine",
-            "/rtp"
-    };
-
     public ChatBindScreen() {
         super(Text.literal("Chat Bind"));
     }
@@ -23,28 +15,35 @@ public class ChatBindScreen extends Screen {
     @Override
     protected void init() {
         int centerY = this.height / 2;
+        int startY = centerY - 90;
+        int rowH = 35;
 
-        // Текстовое поле
-        commandField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 100, centerY - 70, 200, 20,
-                Text.literal("Команда"));
-        commandField.setText(ChatBind.command);
-        commandField.setChangedListener(text -> {
-            ChatBind.command = text;
-        });
-        this.addDrawableChild(commandField);
+        for (int i = 0; i < ChatBind.binds.size(); i++) {
+            final int idx = i;
+            ChatBind.Bind bind = ChatBind.binds.get(i);
+            int y = startY + i * rowH;
 
-        // Пресеты
-        int y = centerY - 30;
-        for (String preset : PRESETS) {
-            this.addDrawableChild(ButtonWidget.builder(
-                    Text.literal(preset),
-                    (button) -> {
-                        ChatBind.command = preset;
-                        commandField.setText(preset);
-                    }
-            ).dimensions(this.width / 2 - 100, y, 200, 20).build());
-            y += 25;
+            // Поле команды
+            TextFieldWidget cmdField = new TextFieldWidget(this.textRenderer,
+                    this.width / 2 - 110, y, 160, 20,
+                    Text.literal("Команда"));
+            cmdField.setText(bind.command);
+            cmdField.setChangedListener(text -> ChatBind.binds.get(idx).command = text);
+            this.addDrawableChild(cmdField);
+
+            // Поле клавиши
+            TextFieldWidget keyField = new TextFieldWidget(this.textRenderer,
+                    this.width / 2 + 55, y, 55, 20,
+                    Text.literal("Клавиша"));
+            keyField.setMaxLength(1);
+            keyField.setText(ChatBind.keyToLetter(bind.keyCode));
+            keyField.setChangedListener(text -> {
+                int key = ChatBind.letterToKey(text);
+                if (key > 0) {
+                    ChatBind.binds.get(idx).keyCode = key;
+                }
+            });
+            this.addDrawableChild(keyField);
         }
 
         this.addDrawableChild(ButtonWidget.builder(
@@ -54,7 +53,7 @@ public class ChatBindScreen extends Screen {
                         this.client.setScreen(new EspMenuScreen());
                     }
                 }
-        ).dimensions(this.width / 2 - 100, y + 10, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, startY + ChatBind.binds.size() * rowH + 20, 200, 20).build());
     }
 
     @Override
@@ -62,8 +61,11 @@ public class ChatBindScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("Клавиша по умолчанию: R (изменяется в настройках управления)"),
-                this.width / 2, this.height / 2 - 90, 0xAAAAAA);
+                Text.literal("Команда"),
+                this.width / 2 - 30, this.height / 2 - 105, 0xAAAAAA);
+        context.drawCenteredTextWithShadow(this.textRenderer,
+                Text.literal("Клавиша"),
+                this.width / 2 + 82, this.height / 2 - 105, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
