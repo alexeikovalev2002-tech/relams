@@ -8,18 +8,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -30,7 +27,6 @@ import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
 
-    // ===== РУДЫ =====
     public static int oreType = 0;
     public static boolean espEnabled = true;
 
@@ -38,7 +34,6 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
     private static final Set<Block> COAL_BLOCKS = new HashSet<>();
 
-    // ===== СУНДУКИ =====
     public static int chestType = 0;
     public static boolean chestEspEnabled = false;
 
@@ -55,11 +50,9 @@ public class BlockEspMod implements ClientModInitializer {
     private static final float[] COLOR_ENDER   = {0.05f, 0.0f, 0.15f, 1.0f};
     private static final float[] COLOR_BED     = {1.0f, 0.0f, 0.0f, 1.0f};
 
-    // ===== PLAYER ESP =====
     public static boolean playerEspEnabled = false;
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
 
-    // ===== DAЛЁКАЯ ПРОРИСОВКА =====
     public static boolean distantEnabled = false;
 
     private static KeyBinding openMenuKey;
@@ -219,7 +212,6 @@ public class BlockEspMod implements ClientModInitializer {
             BlockPos playerPos = client.player.getBlockPos();
             int radius = 24;
 
-            // ===== РУДЫ =====
             if (espEnabled) {
                 Set<Block> targets = getTargetBlocks();
                 for (BlockPos pos : BlockPos.iterate(
@@ -247,7 +239,6 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== СУНДУКИ =====
             if (chestEspEnabled) {
                 for (BlockPos pos : BlockPos.iterate(
                         playerPos.add(-radius, -radius, -radius),
@@ -271,7 +262,6 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== ИГРОКИ =====
             if (playerEspEnabled) {
                 for (PlayerEntity player : client.world.getPlayers()) {
                     if (player == client.player) continue;
@@ -297,7 +287,6 @@ public class BlockEspMod implements ClientModInitializer {
 
             VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
 
-            // ===== РУДЫ =====
             if (espEnabled) {
                 for (BlockPos pos : foundBlocks) {
                     drawBox(matrices, buffer, pos, cameraPos, 1.0f, 0.0f, 0.0f, 1.0f);
@@ -307,7 +296,6 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== СУНДУКИ =====
             if (chestEspEnabled) {
                 for (BlockPos pos : foundChests)
                     drawBox(matrices, buffer, pos, cameraPos, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], COLOR_CHEST[3]);
@@ -321,10 +309,8 @@ public class BlockEspMod implements ClientModInitializer {
                     drawBox(matrices, buffer, pos, cameraPos, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], COLOR_BED[3]);
             }
 
-            // ===== ИГРОКИ =====
             if (playerEspEnabled) {
                 for (PlayerEntity player : foundPlayers) {
-                    // Рамка по хитбоксу
                     Box box = player.getBoundingBox();
                     double x1 = box.minX - cameraPos.x;
                     double y1 = box.minY - cameraPos.y;
@@ -336,55 +322,10 @@ public class BlockEspMod implements ClientModInitializer {
                     VertexRendering.drawBox(matrices, buffer,
                             x1, y1, z1,
                             x2, y2, z2,
-                            1.0f, 1.0f, 0.0f, 1.0f); // Жёлтый
-
-                    // Текст над головой
-                    drawPlayerLabel(client, matrices, consumers, player, box, cameraPos);
+                            1.0f, 1.0f, 0.0f, 1.0f);
                 }
             }
         });
-    }
-
-    private static void drawPlayerLabel(MinecraftClient client, MatrixStack matrices,
-                                        VertexConsumerProvider consumers,
-                                        PlayerEntity player, Box box, Vec3d cameraPos) {
-        TextRenderer tr = client.textRenderer;
-        if (tr == null) return;
-
-        String name = player.getName().getString();
-        float hp = player.getHealth();
-        float maxHp = player.getMaxHealth();
-        int hpPercent = (int) ((hp / maxHp) * 100);
-
-        // Цвет HP
-        int hpColor = 0xFF00FF00; // зелёный
-        if (hpPercent < 60) hpColor = 0xFFFFFF00; // жёлтый
-        if (hpPercent < 30) hpColor = 0xFFFF0000; // красный
-
-        String hpText = String.format("%.0f ❤", hp);
-
-        double x = (box.minX + box.maxX) / 2 - cameraPos.x;
-        double y = box.maxY - cameraPos.y + 0.4;
-        double z = (box.minZ + box.maxZ) / 2 - cameraPos.z;
-
-        matrices.push();
-        matrices.translate(x, y, z);
-        matrices.multiply(client.gameRenderer.getCamera().getRotation());
-        matrices.scale(-0.025f, -0.025f, 0.025f);
-
-        Matrix4f mat = matrices.peek().getPositionMatrix();
-
-        // Ник
-        int nameWidth = tr.getWidth(name);
-        tr.draw(name, -nameWidth / 2f, 0, 0xFFFFFFFF, false, mat, consumers,
-                TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
-
-        // HP
-        int hpWidth = tr.getWidth(hpText);
-        tr.draw(hpText, -hpWidth / 2f, 12, hpColor, false, mat, consumers,
-                TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
-
-        matrices.pop();
     }
 
     private static void drawBox(MatrixStack matrices, VertexConsumer buffer,
