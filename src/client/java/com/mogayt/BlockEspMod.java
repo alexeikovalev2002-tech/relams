@@ -8,13 +8,18 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -44,12 +49,15 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> BED_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_CHESTS = new HashSet<>();
 
-    // Цвета [R, G, B, A]
-    private static final float[] COLOR_CHEST       = {1.0f, 0.5f, 0.0f, 1.0f}; // Оранжевый
-    private static final float[] COLOR_SHULKER     = {0.2f, 0.6f, 1.0f, 1.0f}; // Голубой
-    private static final float[] COLOR_BARREL      = {0.55f, 0.27f, 0.07f, 1.0f}; // Коричневый
-    private static final float[] COLOR_ENDER       = {0.05f, 0.0f, 0.15f, 1.0f}; // Чёрный
-    private static final float[] COLOR_BED         = {1.0f, 0.0f, 0.0f, 1.0f}; // Красный
+    private static final float[] COLOR_CHEST   = {1.0f, 0.5f, 0.0f, 1.0f};
+    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1.0f, 1.0f};
+    private static final float[] COLOR_BARREL  = {0.55f, 0.27f, 0.07f, 1.0f};
+    private static final float[] COLOR_ENDER   = {0.05f, 0.0f, 0.15f, 1.0f};
+    private static final float[] COLOR_BED     = {1.0f, 0.0f, 0.0f, 1.0f};
+
+    // ===== PLAYER ESP =====
+    public static boolean playerEspEnabled = false;
+    private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
 
     // ===== DAЛЁКАЯ ПРОРИСОВКА =====
     public static boolean distantEnabled = false;
@@ -82,7 +90,6 @@ public class BlockEspMod implements ClientModInitializer {
     );
 
     static {
-        // ===== РУДЫ =====
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
 
@@ -92,7 +99,6 @@ public class BlockEspMod implements ClientModInitializer {
         COAL_BLOCKS.add(Blocks.COAL_ORE);
         COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
 
-        // ===== СУНДУКИ =====
         NORMAL_CHESTS.add(Blocks.CHEST);
         NORMAL_CHESTS.add(Blocks.TRAPPED_CHEST);
 
@@ -118,7 +124,6 @@ public class BlockEspMod implements ClientModInitializer {
         SHULKER_CHESTS.add(Blocks.RED_SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.BLACK_SHULKER_BOX);
 
-        // Кровати (16 цветов)
         BED_BLOCKS.add(Blocks.WHITE_BED);
         BED_BLOCKS.add(Blocks.ORANGE_BED);
         BED_BLOCKS.add(Blocks.MAGENTA_BED);
@@ -209,6 +214,7 @@ public class BlockEspMod implements ClientModInitializer {
             foundBarrels.clear();
             foundEnderChests.clear();
             foundBeds.clear();
+            foundPlayers.clear();
 
             BlockPos playerPos = client.player.getBlockPos();
             int radius = 24;
@@ -250,21 +256,30 @@ public class BlockEspMod implements ClientModInitializer {
                     Block block = state.getBlock();
 
                     if (!ALL_CHESTS.contains(block)) continue;
-
-                    // Фильтр по выбранному типу
                     if (chestType == 1 && !NORMAL_CHESTS.contains(block)) continue;
                     if (chestType == 2 && !SHULKER_CHESTS.contains(block)) continue;
                     if (chestType == 3 && !BARREL_BLOCKS.contains(block)) continue;
                     if (chestType == 4 && !ENDER_CHESTS.contains(block)) continue;
                     if (chestType == 5 && !BED_BLOCKS.contains(block)) continue;
 
-                    // Распределяем по спискам
                     BlockPos immutable = pos.toImmutable();
                     if (NORMAL_CHESTS.contains(block)) foundChests.add(immutable);
                     else if (SHULKER_CHESTS.contains(block)) foundShulkers.add(immutable);
                     else if (BARREL_BLOCKS.contains(block)) foundBarrels.add(immutable);
                     else if (ENDER_CHESTS.contains(block)) foundEnderChests.add(immutable);
                     else if (BED_BLOCKS.contains(block)) foundBeds.add(immutable);
+                }
+            }
+
+            // ===== ИГРОКИ =====
+            if (playerEspEnabled) {
+                for (PlayerEntity player : client.world.getPlayers()) {
+                    if (player == client.player) continue;
+                    if (player.isInvisible()) continue;
+                    double dist = player.distanceTo(client.player);
+                    if (dist <= radius) {
+                        foundPlayers.add(player);
+                    }
                 }
             }
         });
@@ -292,7 +307,7 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== СУНДУКИ (каждый тип свой цвет) =====
+            // ===== СУНДУКИ =====
             if (chestEspEnabled) {
                 for (BlockPos pos : foundChests)
                     drawBox(matrices, buffer, pos, cameraPos, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], COLOR_CHEST[3]);
@@ -305,7 +320,71 @@ public class BlockEspMod implements ClientModInitializer {
                 for (BlockPos pos : foundBeds)
                     drawBox(matrices, buffer, pos, cameraPos, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], COLOR_BED[3]);
             }
+
+            // ===== ИГРОКИ =====
+            if (playerEspEnabled) {
+                for (PlayerEntity player : foundPlayers) {
+                    // Рамка по хитбоксу
+                    Box box = player.getBoundingBox();
+                    double x1 = box.minX - cameraPos.x;
+                    double y1 = box.minY - cameraPos.y;
+                    double z1 = box.minZ - cameraPos.z;
+                    double x2 = box.maxX - cameraPos.x;
+                    double y2 = box.maxY - cameraPos.y;
+                    double z2 = box.maxZ - cameraPos.z;
+
+                    VertexRendering.drawBox(matrices, buffer,
+                            x1, y1, z1,
+                            x2, y2, z2,
+                            1.0f, 1.0f, 0.0f, 1.0f); // Жёлтый
+
+                    // Текст над головой
+                    drawPlayerLabel(client, matrices, consumers, player, box, cameraPos);
+                }
+            }
         });
+    }
+
+    private static void drawPlayerLabel(MinecraftClient client, MatrixStack matrices,
+                                        VertexConsumerProvider consumers,
+                                        PlayerEntity player, Box box, Vec3d cameraPos) {
+        TextRenderer tr = client.textRenderer;
+        if (tr == null) return;
+
+        String name = player.getName().getString();
+        float hp = player.getHealth();
+        float maxHp = player.getMaxHealth();
+        int hpPercent = (int) ((hp / maxHp) * 100);
+
+        // Цвет HP
+        int hpColor = 0xFF00FF00; // зелёный
+        if (hpPercent < 60) hpColor = 0xFFFFFF00; // жёлтый
+        if (hpPercent < 30) hpColor = 0xFFFF0000; // красный
+
+        String hpText = String.format("%.0f ❤", hp);
+
+        double x = (box.minX + box.maxX) / 2 - cameraPos.x;
+        double y = box.maxY - cameraPos.y + 0.4;
+        double z = (box.minZ + box.maxZ) / 2 - cameraPos.z;
+
+        matrices.push();
+        matrices.translate(x, y, z);
+        matrices.multiply(client.gameRenderer.getCamera().getRotation());
+        matrices.scale(-0.025f, -0.025f, 0.025f);
+
+        Matrix4f mat = matrices.peek().getPositionMatrix();
+
+        // Ник
+        int nameWidth = tr.getWidth(name);
+        tr.draw(name, -nameWidth / 2f, 0, 0xFFFFFFFF, false, mat, consumers,
+                TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
+
+        // HP
+        int hpWidth = tr.getWidth(hpText);
+        tr.draw(hpText, -hpWidth / 2f, 12, hpColor, false, mat, consumers,
+                TextRenderer.TextLayerType.SEE_THROUGH, 0, 0xF000F0);
+
+        matrices.pop();
     }
 
     private static void drawBox(MatrixStack matrices, VertexConsumer buffer,
@@ -319,4 +398,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-        }
+                }
