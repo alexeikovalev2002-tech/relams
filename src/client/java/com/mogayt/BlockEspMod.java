@@ -18,6 +18,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -332,9 +333,15 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
+            // ===== Правильная проекция 3D → 2D =====
             playerMarkers.clear();
             if (playerEspEnabled && !foundPlayers.isEmpty()) {
-                Matrix4f posMatrix = new Matrix4f(matrices.peek().getPositionMatrix());
+                // Строим VIEW-матрицу из углов камеры (yaw/pitch)
+                MatrixStack viewStack = new MatrixStack();
+                viewStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(worldRenderContext.camera().getPitch()));
+                viewStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(worldRenderContext.camera().getYaw() + 180.0f));
+
+                Matrix4f viewMatrix = new Matrix4f(viewStack.peek().getPositionMatrix());
                 Matrix4f projMatrix = new Matrix4f(worldRenderContext.projectionMatrix());
 
                 int screenW = client.getWindow().getScaledWidth();
@@ -343,11 +350,11 @@ public class BlockEspMod implements ClientModInitializer {
                 for (PlayerEntity player : foundPlayers) {
                     Box box = player.getBoundingBox();
                     float px = (float) ((box.minX + box.maxX) / 2 - cameraPos.x);
-                    float py = (float) (box.maxY - cameraPos.y + 0.6);
+                    float py = (float) (box.maxY - cameraPos.y + 0.7);
                     float pz = (float) ((box.minZ + box.maxZ) / 2 - cameraPos.z);
 
                     Vector4f vec = new Vector4f(px, py, pz, 1.0f);
-                    vec.mul(posMatrix);
+                    vec.mul(viewMatrix);
                     vec.mul(projMatrix);
 
                     if (vec.w <= 0.01f) continue;
@@ -370,15 +377,10 @@ public class BlockEspMod implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
+            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
+
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.textRenderer == null) return;
-
-            // ОТЛАДКА — всегда в левом верхнем углу
-            drawContext.drawTextWithShadow(client.textRenderer,
-                    Text.literal("HUD OK, players: " + playerMarkers.size()),
-                    10, 10, 0xFFFF00FF);
-
-            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
 
             for (PlayerMarker m : playerMarkers) {
                 int nameW = client.textRenderer.getWidth(m.name);
@@ -413,4 +415,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-                                         }
+                                     }
