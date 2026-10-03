@@ -221,6 +221,7 @@ public class BlockEspMod implements ClientModInitializer {
         ));
 
         ChunkTracker.register();
+        ChatBind.register();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
@@ -311,7 +312,6 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== ИГРОКИ (БЕЗ проверки на невидимость) =====
             if (playerEspEnabled) {
                 for (PlayerEntity player : client.world.getPlayers()) {
                     if (player == client.player) continue;
@@ -448,4 +448,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-                        }
+                             }
