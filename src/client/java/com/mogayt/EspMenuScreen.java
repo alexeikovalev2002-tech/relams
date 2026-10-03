@@ -21,12 +21,12 @@ public class EspMenuScreen extends Screen {
         espW = 200;
         espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 90;
+        espY = centerY - 110;
 
         chestW = 200;
         chestH = 20;
         chestX = this.width / 2 - 100;
-        chestY = centerY - 60;
+        chestY = centerY - 80;
 
         // ESP руды
         this.addDrawableChild(ButtonWidget.builder(
@@ -46,6 +46,15 @@ public class EspMenuScreen extends Screen {
                 }
         ).dimensions(chestX, chestY, chestW, chestH).build());
 
+        // Player ESP
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"),
+                (button) -> {
+                    BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled;
+                    button.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"));
+                }
+        ).dimensions(this.width / 2 - 100, centerY - 50, 200, 20).build());
+
         // Fullbright
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
@@ -53,7 +62,7 @@ public class EspMenuScreen extends Screen {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 20, 200, 20).build());
 
         // Freecam
         this.addDrawableChild(ButtonWidget.builder(
@@ -63,7 +72,7 @@ public class EspMenuScreen extends Screen {
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 10, 200, 20).build());
 
         // Distant Horizons
         this.addDrawableChild(ButtonWidget.builder(
@@ -72,7 +81,7 @@ public class EspMenuScreen extends Screen {
                     BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
                     button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 40, 200, 20).build());
 
         // Fix Lag
         this.addDrawableChild(ButtonWidget.builder(
@@ -81,13 +90,13 @@ public class EspMenuScreen extends Screen {
                     Optimizer.enabled = !Optimizer.enabled;
                     button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 60, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 70, 200, 20).build());
 
         // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 100, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 110, 200, 20).build());
     }
 
     private String getEspLabel() {
@@ -102,7 +111,6 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // ПКМ по кнопке руды
         if (button == 1
                 && mouseX >= espX && mouseX <= espX + espW
                 && mouseY >= espY && mouseY <= espY + espH) {
@@ -111,7 +119,6 @@ public class EspMenuScreen extends Screen {
             }
             return true;
         }
-        // ПКМ по кнопке сундуков
         if (button == 1
                 && mouseX >= chestX && mouseX <= chestX + chestW
                 && mouseY >= chestY && mouseY <= chestY + chestH) {
