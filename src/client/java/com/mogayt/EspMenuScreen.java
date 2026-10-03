@@ -10,6 +10,7 @@ public class EspMenuScreen extends Screen {
     private int espX, espY, espW, espH;
     private int chestX, chestY, chestW, chestH;
     private int playerX, playerY, playerW, playerH;
+    private int chatX, chatY, chatW, chatH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -21,15 +22,19 @@ public class EspMenuScreen extends Screen {
 
         espW = 200; espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 110;
+        espY = centerY - 140;
 
         chestW = 200; chestH = 20;
         chestX = this.width / 2 - 100;
-        chestY = centerY - 80;
+        chestY = centerY - 110;
 
         playerW = 200; playerH = 20;
         playerX = this.width / 2 - 100;
-        playerY = centerY - 50;
+        playerY = centerY - 80;
+
+        chatW = 200; chatH = 20;
+        chatX = this.width / 2 - 100;
+        chatY = centerY - 50;
 
         // ESP руды
         this.addDrawableChild(ButtonWidget.builder(
@@ -57,6 +62,12 @@ public class EspMenuScreen extends Screen {
                     button.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"));
                 }
         ).dimensions(playerX, playerY, playerW, playerH).build());
+
+        // ChatBind
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("ChatBind: " + ChatBind.command),
+                (button) -> { }
+        ).dimensions(chatX, chatY, chatW, chatH).build());
 
         // Fullbright
         this.addDrawableChild(ButtonWidget.builder(
@@ -138,6 +149,14 @@ public class EspMenuScreen extends Screen {
             }
             return true;
         }
+        if (button == 1
+                && mouseX >= chatX && mouseX <= chatX + chatW
+                && mouseY >= chatY && mouseY <= chatY + chatH) {
+            if (this.client != null) {
+                this.client.setScreen(new ChatBindScreen());
+            }
+            return true;
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -146,7 +165,7 @@ public class EspMenuScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по ESP / ChestESP / PlayerESP — настройки"),
+                Text.literal("ПКМ по кнопкам — настройки"),
                 this.width / 2, 40, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
