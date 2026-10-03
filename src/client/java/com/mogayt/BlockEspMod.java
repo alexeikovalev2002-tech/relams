@@ -32,9 +32,10 @@ import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
 
-    // 0 = Алмазы, 1 = Железо, 2 = Уголь, 3 = Изумруды, 4 = Незерит, 5 = Всё
+    // ===== РУДЫ =====
     public static int oreType = 0;
     public static boolean espEnabled = true;
+    public static int oreDistance = 24; // дистанция ESP руды
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
@@ -43,8 +44,10 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> NETHERITE_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_ORES = new HashSet<>();
 
+    // ===== СУНДУКИ =====
     public static int chestType = 0;
     public static boolean chestEspEnabled = false;
+    public static int chestDistance = 24;
 
     private static final Set<Block> NORMAL_CHESTS = new HashSet<>();
     private static final Set<Block> SHULKER_CHESTS = new HashSet<>();
@@ -53,13 +56,15 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> BED_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_CHESTS = new HashSet<>();
 
-    private static final float[] COLOR_CHEST   = {1.0f, 0.5f, 0.0f, 1.0f};
-    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1.0f, 1.0f};
-    private static final float[] COLOR_BARREL  = {0.55f, 0.27f, 0.07f, 1.0f};
-    private static final float[] COLOR_ENDER   = {0.05f, 0.0f, 0.15f, 1.0f};
-    private static final float[] COLOR_BED     = {1.0f, 0.0f, 0.0f, 1.0f};
+    private static final float[] COLOR_CHEST   = {1.0f, 0.5f, 0.0f, 1.0f};  // оранжевый
+    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1.0f, 1.0f};  // голубой
+    private static final float[] COLOR_BARREL  = {0.55f, 0.27f, 0.07f, 1.0f};// коричневый
+    private static final float[] COLOR_ENDER   = {0.0f, 0.2f, 1.0f, 1.0f};  // СИНИЙ (изменено)
+    private static final float[] COLOR_BED     = {1.0f, 0.0f, 0.0f, 1.0f};  // красный
 
+    // ===== ИГРОКИ =====
     public static boolean playerEspEnabled = false;
+    public static int playerDistance = 64;
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
 
     private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
@@ -101,7 +106,6 @@ public class BlockEspMod implements ClientModInitializer {
     );
 
     static {
-        // ===== РУДЫ =====
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_BLOCK);
@@ -128,7 +132,6 @@ public class BlockEspMod implements ClientModInitializer {
         ALL_ORES.addAll(EMERALD_BLOCKS);
         ALL_ORES.addAll(NETHERITE_BLOCKS);
 
-        // ===== СУНДУКИ =====
         NORMAL_CHESTS.add(Blocks.CHEST);
         NORMAL_CHESTS.add(Blocks.TRAPPED_CHEST);
 
@@ -253,13 +256,17 @@ public class BlockEspMod implements ClientModInitializer {
             foundPlayers.clear();
 
             BlockPos playerPos = client.player.getBlockPos();
-            int radius = 24;
+            int scanRadius = Math.max(Math.max(oreDistance, chestDistance), playerDistance);
 
+            // ===== РУДЫ =====
             if (espEnabled) {
                 Set<Block> targets = getTargetBlocks();
                 for (BlockPos pos : BlockPos.iterate(
-                        playerPos.add(-radius, -radius, -radius),
-                        playerPos.add(radius, radius, radius))) {
+                        playerPos.add(-scanRadius, -scanRadius, -scanRadius),
+                        playerPos.add(scanRadius, scanRadius, scanRadius))) {
+                    double d = Math.sqrt(pos.getSquaredDistance(playerPos));
+                    if (d > oreDistance) continue;
+
                     BlockState state = client.world.getBlockState(pos);
                     if (targets.contains(state.getBlock())) {
                         foundBlocks.add(pos.toImmutable());
@@ -273,7 +280,7 @@ public class BlockEspMod implements ClientModInitializer {
                                 Math.pow(chunkPos.getStartX() - playerPos.getX(), 2) +
                                 Math.pow(chunkPos.getStartZ() - playerPos.getZ(), 2)
                         );
-                        if (dist > radius * 16) {
+                        if (dist > oreDistance * 16) {
                             for (BlockPos pos : entry.getValue().keySet()) {
                                 distantBlocks.add(pos);
                             }
@@ -282,10 +289,14 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
+            // ===== СУНДУКИ =====
             if (chestEspEnabled) {
                 for (BlockPos pos : BlockPos.iterate(
-                        playerPos.add(-radius, -radius, -radius),
-                        playerPos.add(radius, radius, radius))) {
+                        playerPos.add(-scanRadius, -scanRadius, -scanRadius),
+                        playerPos.add(scanRadius, scanRadius, scanRadius))) {
+                    double d = Math.sqrt(pos.getSquaredDistance(playerPos));
+                    if (d > chestDistance) continue;
+
                     BlockState state = client.world.getBlockState(pos);
                     Block block = state.getBlock();
 
@@ -305,12 +316,13 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
+            // ===== ИГРОКИ =====
             if (playerEspEnabled) {
                 for (PlayerEntity player : client.world.getPlayers()) {
                     if (player == client.player) continue;
                     if (player.isInvisible()) continue;
                     double dist = player.distanceTo(client.player);
-                    if (dist <= radius) {
+                    if (dist <= playerDistance) {
                         foundPlayers.add(player);
                     }
                 }
@@ -442,4 +454,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-                        }
+}
