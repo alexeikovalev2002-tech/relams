@@ -32,12 +32,16 @@ import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
 
+    // 0 = Алмазы, 1 = Железо, 2 = Уголь, 3 = Изумруды, 4 = Незерит, 5 = Всё
     public static int oreType = 0;
     public static boolean espEnabled = true;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
     private static final Set<Block> COAL_BLOCKS = new HashSet<>();
+    private static final Set<Block> EMERALD_BLOCKS = new HashSet<>();
+    private static final Set<Block> NETHERITE_BLOCKS = new HashSet<>();
+    private static final Set<Block> ALL_ORES = new HashSet<>();
 
     public static int chestType = 0;
     public static boolean chestEspEnabled = false;
@@ -97,15 +101,34 @@ public class BlockEspMod implements ClientModInitializer {
     );
 
     static {
+        // ===== РУДЫ =====
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
+        DIAMOND_BLOCKS.add(Blocks.DIAMOND_BLOCK);
 
         IRON_BLOCKS.add(Blocks.IRON_ORE);
         IRON_BLOCKS.add(Blocks.DEEPSLATE_IRON_ORE);
+        IRON_BLOCKS.add(Blocks.IRON_BLOCK);
+        IRON_BLOCKS.add(Blocks.RAW_IRON_BLOCK);
 
         COAL_BLOCKS.add(Blocks.COAL_ORE);
         COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
+        COAL_BLOCKS.add(Blocks.COAL_BLOCK);
 
+        EMERALD_BLOCKS.add(Blocks.EMERALD_ORE);
+        EMERALD_BLOCKS.add(Blocks.DEEPSLATE_EMERALD_ORE);
+        EMERALD_BLOCKS.add(Blocks.EMERALD_BLOCK);
+
+        NETHERITE_BLOCKS.add(Blocks.ANCIENT_DEBRIS);
+        NETHERITE_BLOCKS.add(Blocks.NETHERITE_BLOCK);
+
+        ALL_ORES.addAll(DIAMOND_BLOCKS);
+        ALL_ORES.addAll(IRON_BLOCKS);
+        ALL_ORES.addAll(COAL_BLOCKS);
+        ALL_ORES.addAll(EMERALD_BLOCKS);
+        ALL_ORES.addAll(NETHERITE_BLOCKS);
+
+        // ===== СУНДУКИ =====
         NORMAL_CHESTS.add(Blocks.CHEST);
         NORMAL_CHESTS.add(Blocks.TRAPPED_CHEST);
 
@@ -159,6 +182,9 @@ public class BlockEspMod implements ClientModInitializer {
         switch (oreType) {
             case 1: return IRON_BLOCKS;
             case 2: return COAL_BLOCKS;
+            case 3: return EMERALD_BLOCKS;
+            case 4: return NETHERITE_BLOCKS;
+            case 5: return ALL_ORES;
             default: return DIAMOND_BLOCKS;
         }
     }
@@ -167,6 +193,9 @@ public class BlockEspMod implements ClientModInitializer {
         switch (oreType) {
             case 1: return "Железо";
             case 2: return "Уголь";
+            case 3: return "Изумруды";
+            case 4: return "Незерит";
+            case 5: return "Всё";
             default: return "Алмазы";
         }
     }
@@ -333,10 +362,8 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== Правильная проекция 3D → 2D =====
             playerMarkers.clear();
             if (playerEspEnabled && !foundPlayers.isEmpty()) {
-                // Строим VIEW-матрицу из углов камеры (yaw/pitch)
                 MatrixStack viewStack = new MatrixStack();
                 viewStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(worldRenderContext.camera().getPitch()));
                 viewStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(worldRenderContext.camera().getYaw() + 180.0f));
@@ -415,4 +442,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-                                     }
+                        }
