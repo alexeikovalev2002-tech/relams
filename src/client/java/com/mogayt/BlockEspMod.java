@@ -1,6 +1,5 @@
 package com.mogayt;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -58,7 +57,6 @@ public class BlockEspMod implements ClientModInitializer {
     public static boolean playerEspEnabled = false;
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
 
-    // 2D-метки игроков для HUD
     private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
 
     private static class PlayerMarker {
@@ -289,7 +287,6 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
 
-        // 3D-рендер (кубы)
         WorldRenderEvents.LAST.register((worldRenderContext) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.world == null || client.player == null) return;
@@ -325,54 +322,41 @@ public class BlockEspMod implements ClientModInitializer {
                     drawBox(matrices, buffer, pos, cameraPos, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], COLOR_BED[3]);
             }
 
-            // Куб игрока
             if (playerEspEnabled) {
                 for (PlayerEntity player : foundPlayers) {
                     Box box = player.getBoundingBox();
-                    double x1 = box.minX - cameraPos.x;
-                    double y1 = box.minY - cameraPos.y;
-                    double z1 = box.minZ - cameraPos.z;
-                    double x2 = box.maxX - cameraPos.x;
-                    double y2 = box.maxY - cameraPos.y;
-                    double z2 = box.maxZ - cameraPos.z;
-
                     VertexRendering.drawBox(matrices, buffer,
-                            x1, y1, z1,
-                            x2, y2, z2,
+                            box.minX - cameraPos.x, box.minY - cameraPos.y, box.minZ - cameraPos.z,
+                            box.maxX - cameraPos.x, box.maxY - cameraPos.y, box.maxZ - cameraPos.z,
                             1.0f, 1.0f, 0.0f, 1.0f);
                 }
             }
 
-            // Сохраняем 2D-координаты для HUD
             playerMarkers.clear();
             if (playerEspEnabled && !foundPlayers.isEmpty()) {
-                Matrix4f posMatrix = matrices.peek().getPositionMatrix();
-                Matrix4f projMatrix = RenderSystem.getProjectionMatrix();
+                Matrix4f posMatrix = new Matrix4f(matrices.peek().getPositionMatrix());
+                Matrix4f projMatrix = new Matrix4f(worldRenderContext.projectionMatrix());
+
                 int screenW = client.getWindow().getScaledWidth();
                 int screenH = client.getWindow().getScaledHeight();
 
                 for (PlayerEntity player : foundPlayers) {
                     Box box = player.getBoundingBox();
-                    double px = (box.minX + box.maxX) / 2 - cameraPos.x;
-                    double py = box.maxY - cameraPos.y + 0.5;
-                    double pz = (box.minZ + box.maxZ) / 2 - cameraPos.z;
+                    float px = (float) ((box.minX + box.maxX) / 2 - cameraPos.x);
+                    float py = (float) (box.maxY - cameraPos.y + 0.6);
+                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cameraPos.z);
 
-                    Vector4f vec = new Vector4f((float) px, (float) py, (float) pz, 1.0f);
+                    Vector4f vec = new Vector4f(px, py, pz, 1.0f);
                     vec.mul(posMatrix);
                     vec.mul(projMatrix);
 
-                    if (vec.w <= 0.0f) continue;
+                    if (vec.w <= 0.01f) continue;
 
                     float ndcX = vec.x / vec.w;
                     float ndcY = vec.y / vec.w;
-                    float ndcZ = vec.z / vec.w;
-
-                    if (ndcZ < -1.0f || ndcZ > 1.0f) continue;
 
                     int sx = (int) ((ndcX * 0.5f + 0.5f) * screenW);
                     int sy = (int) ((0.5f - ndcY * 0.5f) * screenH);
-
-                    if (sx < 0 || sx > screenW || sy < 0 || sy > screenH) continue;
 
                     PlayerMarker marker = new PlayerMarker();
                     marker.x = sx;
@@ -385,7 +369,6 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
 
-        // HUD — ник и HP над головой
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             if (!playerEspEnabled || playerMarkers.isEmpty()) return;
 
@@ -393,19 +376,18 @@ public class BlockEspMod implements ClientModInitializer {
             if (client.textRenderer == null) return;
 
             for (PlayerMarker m : playerMarkers) {
-                int hpPercent = (int) ((m.hp / m.maxHp) * 100);
-                int hpColor = 0xFF00FF00;
-                if (hpPercent < 60) hpColor = 0xFFFFFF00;
-                if (hpPercent < 30) hpColor = 0xFFFF0000;
-
-                String hpText = String.format("%.0f", m.hp);
-
                 int nameW = client.textRenderer.getWidth(m.name);
                 drawContext.drawTextWithShadow(client.textRenderer,
                         Text.literal(m.name),
                         m.x - nameW / 2, m.y,
                         0xFFFFFFFF);
 
+                int hpPercent = (int) ((m.hp / m.maxHp) * 100);
+                int hpColor = 0xFF00FF00;
+                if (hpPercent < 60) hpColor = 0xFFFFFF00;
+                if (hpPercent < 30) hpColor = 0xFFFF0000;
+
+                String hpText = String.format("%.0f", m.hp);
                 int hpW = client.textRenderer.getWidth(hpText);
                 drawContext.drawTextWithShadow(client.textRenderer,
                         Text.literal(hpText),
@@ -426,4 +408,4 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-    }
+}
