@@ -17,27 +17,33 @@ public class OreSelectScreen extends Screen {
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal((BlockEspMod.oreType == 0 ? "> " : "") + "Алмазы"),
-                (button) -> {
-                    BlockEspMod.oreType = 0;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
+                (button) -> { BlockEspMod.oreType = 0; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 80, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal((BlockEspMod.oreType == 1 ? "> " : "") + "Железо"),
-                (button) -> {
-                    BlockEspMod.oreType = 1;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
+                (button) -> { BlockEspMod.oreType = 1; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 55, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal((BlockEspMod.oreType == 2 ? "> " : "") + "Уголь"),
-                (button) -> {
-                    BlockEspMod.oreType = 2;
-                    this.close();
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
+                (button) -> { BlockEspMod.oreType = 2; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal((BlockEspMod.oreType == 3 ? "> " : "") + "Изумруды"),
+                (button) -> { BlockEspMod.oreType = 3; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY - 5, 200, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal((BlockEspMod.oreType == 4 ? "> " : "") + "Незерит"),
+                (button) -> { BlockEspMod.oreType = 4; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY + 20, 200, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal((BlockEspMod.oreType == 5 ? "> " : "") + "Всё"),
+                (button) -> { BlockEspMod.oreType = 5; this.close(); }
+        ).dimensions(this.width / 2 - 100, centerY + 45, 200, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
@@ -46,7 +52,7 @@ public class OreSelectScreen extends Screen {
                         this.client.setScreen(new EspMenuScreen());
                     }
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 70, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 80, 200, 20).build());
     }
 
     @Override
