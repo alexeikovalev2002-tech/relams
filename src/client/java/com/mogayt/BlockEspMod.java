@@ -343,17 +343,28 @@ public class BlockEspMod implements ClientModInitializer {
             int sw = client.getWindow().getScaledWidth();
             int sh = client.getWindow().getScaledHeight();
 
-            // Круг AimMobs
             if (AimMobs.enabled) {
                 int cx = sw / 2;
                 int cy = sh / 2;
-                int radius = (int)(sh * 0.15);
-                int segments = 90;
+                double fovRad = Math.toRadians(AimMobs.fovAngle);
+                int radius = (int) (sh * 0.5 * Math.tan(fovRad) / Math.tan(Math.toRadians(70.0)));
+                if (radius < 10) radius = 10;
+                if (radius > sh / 2) radius = sh / 2;
+                int thickness = 2;
+                int color = 0xFFFFFFFF;
+                int segments = 180;
                 for (int i = 0; i < segments; i++) {
-                    double angle = i * Math.PI * 2.0 / segments;
-                    int x = cx + (int)(Math.cos(angle) * radius);
-                    int y = cy + (int)(Math.sin(angle) * radius);
-                    dc.fill(x, y, x + 2, y + 2, 0xFFFFFFFF);
+                    double a1 = i * Math.PI * 2.0 / segments;
+                    double a2 = (i + 1) * Math.PI * 2.0 / segments;
+                    int x1 = cx + (int)(Math.cos(a1) * radius);
+                    int y1 = cy + (int)(Math.sin(a1) * radius);
+                    int x2 = cx + (int)(Math.cos(a2) * radius);
+                    int y2 = cy + (int)(Math.sin(a2) * radius);
+                    int minX = Math.min(x1, x2) - thickness;
+                    int minY = Math.min(y1, y2) - thickness;
+                    int maxX = Math.max(x1, x2) + thickness;
+                    int maxY = Math.max(y1, y2) + thickness;
+                    dc.fill(minX, minY, maxX, maxY, color);
                 }
             }
 
@@ -394,7 +405,4 @@ public class BlockEspMod implements ClientModInitializer {
         for (int i = 0; i < 4; i++) {
             float[] a = pts[i], d = pts[(i + 1) % 4];
             b.vertex(m, a[0], a[1], a[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
-            b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
-        }
-    }
-                }
+            b.vertex(m, d[0
