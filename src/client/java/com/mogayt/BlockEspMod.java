@@ -197,6 +197,9 @@ public class BlockEspMod implements ClientModInitializer {
         ChunkTracker.register();
         ChatBind.register();
 
+        // AimMobs — на START_CLIENT_TICK, чтобы камера успевала обновиться до рендера
+        ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
                 if (client.currentScreen == null) client.setScreen(new EspMenuScreen());
@@ -204,7 +207,6 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
-            AimMobs.tick(client);
             if (client.player != null && client.player.age % 100 == 0) ChunkTracker.cleanup();
             if (client.world == null || client.player == null) return;
             tickCounter++;
@@ -369,4 +371,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-    }
+                }
