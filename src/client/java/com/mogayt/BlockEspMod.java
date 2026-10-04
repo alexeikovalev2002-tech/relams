@@ -360,9 +360,11 @@ public class BlockEspMod implements ClientModInitializer {
     }
 
     private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float s) {
-        float cx = (float)(c.x - cam.x);
-        float cy = (float)(c.y - cam.y);
-        float cz = (float)(c.z - cam.z);
+        Vec3d visualPos = c.add(n.multiply(0.03));
+
+        float cx = (float)(visualPos.x - cam.x);
+        float cy = (float)(visualPos.y - cam.y);
+        float cz = (float)(visualPos.z - cam.z);
 
         float[][] pts;
 
@@ -396,4 +398,4 @@ public class BlockEspMod implements ClientModInitializer {
             b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
         }
     }
-                        }
+                                        }
