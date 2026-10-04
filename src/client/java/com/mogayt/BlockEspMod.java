@@ -55,11 +55,11 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> BED_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_CHESTS = new HashSet<>();
 
-    private static final float[] COLOR_CHEST = {1f, 0.5f, 0f, 1f};
-    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1f, 1f};
-    private static final float[] COLOR_BARREL = {0.55f, 0.27f, 0.07f, 1f};
-    private static final float[] COLOR_ENDER = {0f, 0.2f, 1f, 1f};
-    private static final float[] COLOR_BED = {1f, 0f, 0f, 1f};
+    private static final float[] C_CHEST = {1f, 0.5f, 0f};
+    private static final float[] C_SHULKER = {0.2f, 0.6f, 1f};
+    private static final float[] C_BARREL = {0.55f, 0.27f, 0.07f};
+    private static final float[] C_ENDER = {0f, 0.2f, 1f};
+    private static final float[] C_BED = {1f, 0f, 0f};
 
     private static KeyBinding openMenuKey;
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
@@ -218,52 +218,47 @@ public class BlockEspMod implements ClientModInitializer {
             foundEnderChests.clear();
             foundBeds.clear();
             foundPlayers.clear();
-            BlockPos playerPos = client.player.getBlockPos();
-            int scanRadius = Math.max(Math.max(oreDistance, chestDistance), playerDistance);
+            BlockPos pp = client.player.getBlockPos();
+            int scan = Math.max(Math.max(oreDistance, chestDistance), playerDistance);
 
             if (espEnabled) {
                 Set<Block> targets = getTargetBlocks();
-                for (BlockPos pos : BlockPos.iterate(
-                        playerPos.add(-scanRadius, -scanRadius, -scanRadius),
-                        playerPos.add(scanRadius, scanRadius, scanRadius))) {
-                    if (Math.sqrt(pos.getSquaredDistance(playerPos)) > oreDistance) continue;
-                    if (targets.contains(client.world.getBlockState(pos).getBlock()))
-                        foundBlocks.add(pos.toImmutable());
+                for (BlockPos pos : BlockPos.iterate(pp.add(-scan, -scan, -scan), pp.add(scan, scan, scan))) {
+                    if (Math.sqrt(pos.getSquaredDistance(pp)) > oreDistance) continue;
+                    if (targets.contains(client.world.getBlockState(pos).getBlock())) foundBlocks.add(pos.toImmutable());
                 }
                 if (distantEnabled) {
-                    for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> entry : ChunkTracker.getSavedChunks().entrySet()) {
-                        ChunkPos cp = entry.getKey();
-                        double dist = Math.sqrt(Math.pow(cp.getStartX() - playerPos.getX(), 2) + Math.pow(cp.getStartZ() - playerPos.getZ(), 2));
-                        if (dist > oreDistance * 16) distantBlocks.addAll(entry.getValue().keySet());
+                    for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> e : ChunkTracker.getSavedChunks().entrySet()) {
+                        ChunkPos cp = e.getKey();
+                        double d = Math.sqrt(Math.pow(cp.getStartX() - pp.getX(), 2) + Math.pow(cp.getStartZ() - pp.getZ(), 2));
+                        if (d > oreDistance * 16) distantBlocks.addAll(e.getValue().keySet());
                     }
                 }
             }
 
             if (chestEspEnabled) {
-                for (BlockPos pos : BlockPos.iterate(
-                        playerPos.add(-scanRadius, -scanRadius, -scanRadius),
-                        playerPos.add(scanRadius, scanRadius, scanRadius))) {
-                    if (Math.sqrt(pos.getSquaredDistance(playerPos)) > chestDistance) continue;
-                    Block block = client.world.getBlockState(pos).getBlock();
-                    if (!ALL_CHESTS.contains(block)) continue;
-                    if (chestType == 1 && !NORMAL_CHESTS.contains(block)) continue;
-                    if (chestType == 2 && !SHULKER_CHESTS.contains(block)) continue;
-                    if (chestType == 3 && !BARREL_BLOCKS.contains(block)) continue;
-                    if (chestType == 4 && !ENDER_CHESTS.contains(block)) continue;
-                    if (chestType == 5 && !BED_BLOCKS.contains(block)) continue;
+                for (BlockPos pos : BlockPos.iterate(pp.add(-scan, -scan, -scan), pp.add(scan, scan, scan))) {
+                    if (Math.sqrt(pos.getSquaredDistance(pp)) > chestDistance) continue;
+                    Block b = client.world.getBlockState(pos).getBlock();
+                    if (!ALL_CHESTS.contains(b)) continue;
+                    if (chestType == 1 && !NORMAL_CHESTS.contains(b)) continue;
+                    if (chestType == 2 && !SHULKER_CHESTS.contains(b)) continue;
+                    if (chestType == 3 && !BARREL_BLOCKS.contains(b)) continue;
+                    if (chestType == 4 && !ENDER_CHESTS.contains(b)) continue;
+                    if (chestType == 5 && !BED_BLOCKS.contains(b)) continue;
                     BlockPos im = pos.toImmutable();
-                    if (NORMAL_CHESTS.contains(block)) foundChests.add(im);
-                    else if (SHULKER_CHESTS.contains(block)) foundShulkers.add(im);
-                    else if (BARREL_BLOCKS.contains(block)) foundBarrels.add(im);
-                    else if (ENDER_CHESTS.contains(block)) foundEnderChests.add(im);
-                    else if (BED_BLOCKS.contains(block)) foundBeds.add(im);
+                    if (NORMAL_CHESTS.contains(b)) foundChests.add(im);
+                    else if (SHULKER_CHESTS.contains(b)) foundShulkers.add(im);
+                    else if (BARREL_BLOCKS.contains(b)) foundBarrels.add(im);
+                    else if (ENDER_CHESTS.contains(b)) foundEnderChests.add(im);
+                    else if (BED_BLOCKS.contains(b)) foundBeds.add(im);
                 }
             }
 
             if (playerEspEnabled) {
-                for (PlayerEntity player : client.world.getPlayers()) {
-                    if (player == client.player) continue;
-                    if (player.distanceTo(client.player) <= playerDistance) foundPlayers.add(player);
+                for (PlayerEntity p : client.world.getPlayers()) {
+                    if (p == client.player) continue;
+                    if (p.distanceTo(client.player) <= playerDistance) foundPlayers.add(p);
                 }
             }
         });
@@ -277,61 +272,61 @@ public class BlockEspMod implements ClientModInitializer {
             VertexConsumerProvider consumers = ctx.consumers();
             if (consumers == null) return;
             VertexConsumer buf = consumers.getBuffer(THROUGH_WALLS);
+            Matrix4f mat = matrices.peek().getPositionMatrix();
 
             if (espEnabled) {
-                for (BlockPos pos : foundBlocks) drawBox(matrices, buf, pos, cam, 1f, 0f, 0f, 1f);
-                for (BlockPos pos : distantBlocks) drawBox(matrices, buf, pos, cam, 0.2f, 0.5f, 1f, 1f);
+                for (BlockPos pos : foundBlocks) RenderHelper.drawBox(buf, mat, pos, cam, 1f, 0f, 0f);
+                for (BlockPos pos : distantBlocks) RenderHelper.drawBox(buf, mat, pos, cam, 0.2f, 0.5f, 1f);
             }
             if (chestEspEnabled) {
-                for (BlockPos pos : foundChests) drawBox(matrices, buf, pos, cam, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], 1f);
-                for (BlockPos pos : foundShulkers) drawBox(matrices, buf, pos, cam, COLOR_SHULKER[0], COLOR_SHULKER[1], COLOR_SHULKER[2], 1f);
-                for (BlockPos pos : foundBarrels) drawBox(matrices, buf, pos, cam, COLOR_BARREL[0], COLOR_BARREL[1], COLOR_BARREL[2], 1f);
-                for (BlockPos pos : foundEnderChests) drawBox(matrices, buf, pos, cam, COLOR_ENDER[0], COLOR_ENDER[1], COLOR_ENDER[2], 1f);
-                for (BlockPos pos : foundBeds) drawBox(matrices, buf, pos, cam, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], 1f);
+                for (BlockPos pos : foundChests) RenderHelper.drawBox(buf, mat, pos, cam, C_CHEST[0], C_CHEST[1], C_CHEST[2]);
+                for (BlockPos pos : foundShulkers) RenderHelper.drawBox(buf, mat, pos, cam, C_SHULKER[0], C_SHULKER[1], C_SHULKER[2]);
+                for (BlockPos pos : foundBarrels) RenderHelper.drawBox(buf, mat, pos, cam, C_BARREL[0], C_BARREL[1], C_BARREL[2]);
+                for (BlockPos pos : foundEnderChests) RenderHelper.drawBox(buf, mat, pos, cam, C_ENDER[0], C_ENDER[1], C_ENDER[2]);
+                for (BlockPos pos : foundBeds) RenderHelper.drawBox(buf, mat, pos, cam, C_BED[0], C_BED[1], C_BED[2]);
             }
             if (playerEspEnabled) {
-                for (PlayerEntity player : foundPlayers) {
-                    Box box = player.getBoundingBox();
-                    VertexRendering.drawBox(matrices, buf,
-                            box.minX - cam.x, box.minY - cam.y, box.minZ - cam.z,
-                            box.maxX - cam.x, box.maxY - cam.y, box.maxZ - cam.z,
-                            1f, 1f, 0f, 1f);
+                for (PlayerEntity p : foundPlayers) {
+                    Box box = p.getBoundingBox();
+                    RenderHelper.drawBoxRaw(buf, mat,
+                            (float)(box.minX - cam.x), (float)(box.minY - cam.y), (float)(box.minZ - cam.z),
+                            (float)(box.maxX - cam.x), (float)(box.maxY - cam.y), (float)(box.maxZ - cam.z),
+                            1f, 1f, 0f);
                 }
             }
 
             TrajectoryPredictor.update(client);
             if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
-                Matrix4f mat = matrices.peek().getPositionMatrix();
-                drawDiamond(buf, mat, TrajectoryPredictor.impactPoint,
+                RenderHelper.drawDiamond(buf, mat, TrajectoryPredictor.impactPoint,
                         TrajectoryPredictor.impactNormal, cam, 0.4f);
             }
 
             playerMarkers.clear();
             if (playerEspEnabled && !foundPlayers.isEmpty()) {
-                MatrixStack viewStack = new MatrixStack();
-                viewStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(ctx.camera().getPitch()));
-                viewStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ctx.camera().getYaw() + 180f));
-                Matrix4f viewMatrix = new Matrix4f(viewStack.peek().getPositionMatrix());
-                Matrix4f projMatrix = new Matrix4f(ctx.projectionMatrix());
-                int screenW = client.getWindow().getScaledWidth();
-                int screenH = client.getWindow().getScaledHeight();
-                for (PlayerEntity player : foundPlayers) {
-                    Box box = player.getBoundingBox();
+                MatrixStack vs = new MatrixStack();
+                vs.multiply(RotationAxis.POSITIVE_X.rotationDegrees(ctx.camera().getPitch()));
+                vs.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ctx.camera().getYaw() + 180f));
+                Matrix4f vm = new Matrix4f(vs.peek().getPositionMatrix());
+                Matrix4f pm = new Matrix4f(ctx.projectionMatrix());
+                int sw = client.getWindow().getScaledWidth();
+                int sh = client.getWindow().getScaledHeight();
+                for (PlayerEntity p : foundPlayers) {
+                    Box box = p.getBoundingBox();
                     float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
                     float py = (float) (box.maxY - cam.y + 0.7);
                     float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
-                    Vector4f vec = new Vector4f(px, py, pz, 1f);
-                    vec.mul(viewMatrix);
-                    vec.mul(projMatrix);
-                    if (vec.w <= 0.01f) continue;
-                    int sx = (int) ((vec.x / vec.w * 0.5f + 0.5f) * screenW);
-                    int sy = (int) ((0.5f - vec.y / vec.w * 0.5f) * screenH);
+                    Vector4f v = new Vector4f(px, py, pz, 1f);
+                    v.mul(vm);
+                    v.mul(pm);
+                    if (v.w <= 0.01f) continue;
+                    int sx = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
+                    int sy = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
                     PlayerMarker marker = new PlayerMarker();
                     marker.x = sx;
                     marker.y = sy;
-                    marker.name = player.getName().getString();
-                    marker.hp = player.getHealth();
-                    marker.maxHp = player.getMaxHealth();
+                    marker.name = p.getName().getString();
+                    marker.hp = p.getHealth();
+                    marker.maxHp = p.getMaxHealth();
                     playerMarkers.add(marker);
                 }
             }
@@ -350,8 +345,6 @@ public class BlockEspMod implements ClientModInitializer {
                 int radius = (int) (sh * 0.5 * Math.tan(fovRad) / Math.tan(Math.toRadians(70.0)));
                 if (radius < 10) radius = 10;
                 if (radius > sh / 2) radius = sh / 2;
-                int thickness = 2;
-                int color = 0xFFFFFFFF;
                 int segments = 180;
                 for (int i = 0; i < segments; i++) {
                     double a1 = i * Math.PI * 2.0 / segments;
@@ -360,49 +353,23 @@ public class BlockEspMod implements ClientModInitializer {
                     int y1 = cy + (int)(Math.sin(a1) * radius);
                     int x2 = cx + (int)(Math.cos(a2) * radius);
                     int y2 = cy + (int)(Math.sin(a2) * radius);
-                    int minX = Math.min(x1, x2) - thickness;
-                    int minY = Math.min(y1, y2) - thickness;
-                    int maxX = Math.max(x1, x2) + thickness;
-                    int maxY = Math.max(y1, y2) + thickness;
-                    dc.fill(minX, minY, maxX, maxY, color);
+                    dc.fill(Math.min(x1,x2)-2, Math.min(y1,y2)-2, Math.max(x1,x2)+2, Math.max(y1,y2)+2, 0xFFFFFFFF);
                 }
             }
 
             if (!playerEspEnabled || playerMarkers.isEmpty()) return;
             if (client.textRenderer == null) return;
             for (PlayerMarker m : playerMarkers) {
-                int nameW = client.textRenderer.getWidth(m.name);
-                dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nameW / 2, m.y, 0xFFFFFFFF);
-                int hpPercent = (int) ((m.hp / m.maxHp) * 100);
-                int hpColor = 0xFF00FF00;
-                if (hpPercent < 60) hpColor = 0xFFFFFF00;
-                if (hpPercent < 30) hpColor = 0xFFFF0000;
-                String hpText = String.format("%.0f", m.hp);
-                int hpW = client.textRenderer.getWidth(hpText);
-                dc.drawTextWithShadow(client.textRenderer, Text.literal(hpText), m.x - hpW / 2, m.y + 10, hpColor);
+                int nw = client.textRenderer.getWidth(m.name);
+                dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
+                int hpP = (int) ((m.hp / m.maxHp) * 100);
+                int hc = 0xFF00FF00;
+                if (hpP < 60) hc = 0xFFFFFF00;
+                if (hpP < 30) hc = 0xFFFF0000;
+                String ht = String.format("%.0f", m.hp);
+                int hw = client.textRenderer.getWidth(ht);
+                dc.drawTextWithShadow(client.textRenderer, Text.literal(ht), m.x - hw / 2, m.y + 10, hc);
             }
         });
     }
-
-    private static void drawBox(MatrixStack m, VertexConsumer b, BlockPos p, Vec3d cam, float r, float g, float bl, float a) {
-        VertexRendering.drawBox(m, b, p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z,
-                p.getX() + 1 - cam.x, p.getY() + 1 - cam.y, p.getZ() + 1 - cam.z, r, g, bl, a);
-    }
-
-    private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float s) {
-        Vec3d visualPos = c.add(n.multiply(0.03));
-        float cx = (float)(visualPos.x - cam.x);
-        float cy = (float)(visualPos.y - cam.y);
-        float cz = (float)(visualPos.z - cam.z);
-        float[][] pts;
-        if (Math.abs(n.y) > 0.5) {
-            pts = new float[][]{{cx, cy, cz + s}, {cx + s, cy, cz}, {cx, cy, cz - s}, {cx - s, cy, cz}};
-        } else if (Math.abs(n.x) > 0.5) {
-            pts = new float[][]{{cx, cy + s, cz}, {cx, cy, cz + s}, {cx, cy - s, cz}, {cx, cy, cz - s}};
-        } else {
-            pts = new float[][]{{cx, cy + s, cz}, {cx + s, cy, cz}, {cx, cy - s, cz}, {cx - s, cy, cz}};
-        }
-        for (int i = 0; i < 4; i++) {
-            float[] a = pts[i], d = pts[(i + 1) % 4];
-            b.vertex(m, a[0], a[1], a[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
-            b.vertex(m, d[0
+                                                                      }
