@@ -194,7 +194,6 @@ public class BlockEspMod implements ClientModInitializer {
                 "key.mog-mod.open_menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
                 "category.mog-mod.keys"));
 
-        Config.init();
         ChunkTracker.register();
         ChatBind.register();
 
@@ -205,7 +204,6 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
-            Config.tick(client);
             if (client.player != null && client.player.age % 100 == 0) ChunkTracker.cleanup();
             if (client.world == null || client.player == null) return;
             tickCounter++;
@@ -381,4 +379,4 @@ public class BlockEspMod implements ClientModInitializer {
             b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
         }
     }
-                        }
+            }
