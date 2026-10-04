@@ -77,29 +77,22 @@ public class EspMenuScreen extends Screen {
                 }).dimensions(x, cy + 22, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"),
-                (button) -> {
-                    BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
-                }).dimensions(x, cy + 44, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
                 (button) -> {
                     Optimizer.enabled = !Optimizer.enabled;
                     button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
-                }).dimensions(x, cy + 66, w, h).build());
+                }).dimensions(x, cy + 44, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
                 (button) -> {
                     TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
                     button.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"));
-                }).dimensions(x, cy + 88, w, h).build());
+                }).dimensions(x, cy + 66, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
-                (button) -> this.close()).dimensions(x, cy + 118, w, h).build());
+                (button) -> this.close()).dimensions(x, cy + 96, w, h).build());
     }
 
     private String getEspLabel() {
