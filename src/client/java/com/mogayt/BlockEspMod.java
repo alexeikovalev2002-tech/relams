@@ -35,6 +35,12 @@ public class BlockEspMod implements ClientModInitializer {
     public static int oreType = 0;
     public static boolean espEnabled = true;
     public static int oreDistance = 24;
+    public static int chestType = 0;
+    public static boolean chestEspEnabled = false;
+    public static int chestDistance = 24;
+    public static boolean playerEspEnabled = false;
+    public static int playerDistance = 64;
+    public static boolean distantEnabled = false;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
@@ -42,11 +48,6 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> EMERALD_BLOCKS = new HashSet<>();
     private static final Set<Block> NETHERITE_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_ORES = new HashSet<>();
-
-    public static int chestType = 0;
-    public static boolean chestEspEnabled = false;
-    public static int chestDistance = 24;
-
     private static final Set<Block> NORMAL_CHESTS = new HashSet<>();
     private static final Set<Block> SHULKER_CHESTS = new HashSet<>();
     private static final Set<Block> BARREL_BLOCKS = new HashSet<>();
@@ -54,29 +55,15 @@ public class BlockEspMod implements ClientModInitializer {
     private static final Set<Block> BED_BLOCKS = new HashSet<>();
     private static final Set<Block> ALL_CHESTS = new HashSet<>();
 
-    private static final float[] COLOR_CHEST   = {1.0f, 0.5f, 0.0f, 1.0f};
-    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1.0f, 1.0f};
-    private static final float[] COLOR_BARREL  = {0.55f, 0.27f, 0.07f, 1.0f};
-    private static final float[] COLOR_ENDER   = {0.0f, 0.2f, 1.0f, 1.0f};
-    private static final float[] COLOR_BED     = {1.0f, 0.0f, 0.0f, 1.0f};
-
-    public static boolean playerEspEnabled = false;
-    public static int playerDistance = 64;
-    private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
-
-    private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
-
-    private static class PlayerMarker {
-        int x, y;
-        String name;
-        float hp;
-        float maxHp;
-    }
-
-    public static boolean distantEnabled = false;
+    private static final float[] COLOR_CHEST = {1f, 0.5f, 0f, 1f};
+    private static final float[] COLOR_SHULKER = {0.2f, 0.6f, 1f, 1f};
+    private static final float[] COLOR_BARREL = {0.55f, 0.27f, 0.07f, 1f};
+    private static final float[] COLOR_ENDER = {0f, 0.2f, 1f, 1f};
+    private static final float[] COLOR_BED = {1f, 0f, 0f, 1f};
 
     private static KeyBinding openMenuKey;
-
+    private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
+    private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static final List<BlockPos> distantBlocks = new ArrayList<>();
     private static final List<BlockPos> foundChests = new ArrayList<>();
@@ -86,56 +73,48 @@ public class BlockEspMod implements ClientModInitializer {
     private static final List<BlockPos> foundBeds = new ArrayList<>();
     private static int tickCounter = 0;
 
+    private static class PlayerMarker {
+        int x, y;
+        String name;
+        float hp, maxHp;
+    }
+
     private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
-            "mog-mod-through-walls",
-            VertexFormats.LINES,
-            VertexFormat.DrawMode.LINES,
-            1536,
-            false,
-            true,
+            "mog-mod-through-walls", VertexFormats.LINES, VertexFormat.DrawMode.LINES,
+            1536, false, true,
             RenderLayer.MultiPhaseParameters.builder()
                     .program(RenderPhase.LINES_PROGRAM)
                     .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
                     .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
                     .writeMaskState(RenderPhase.COLOR_MASK)
                     .cull(RenderPhase.DISABLE_CULLING)
-                    .build(false)
-    );
+                    .build(false));
 
     static {
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DEEPSLATE_DIAMOND_ORE);
         DIAMOND_BLOCKS.add(Blocks.DIAMOND_BLOCK);
-
         IRON_BLOCKS.add(Blocks.IRON_ORE);
         IRON_BLOCKS.add(Blocks.DEEPSLATE_IRON_ORE);
         IRON_BLOCKS.add(Blocks.IRON_BLOCK);
         IRON_BLOCKS.add(Blocks.RAW_IRON_BLOCK);
-
         COAL_BLOCKS.add(Blocks.COAL_ORE);
         COAL_BLOCKS.add(Blocks.DEEPSLATE_COAL_ORE);
         COAL_BLOCKS.add(Blocks.COAL_BLOCK);
-
         EMERALD_BLOCKS.add(Blocks.EMERALD_ORE);
         EMERALD_BLOCKS.add(Blocks.DEEPSLATE_EMERALD_ORE);
         EMERALD_BLOCKS.add(Blocks.EMERALD_BLOCK);
-
         NETHERITE_BLOCKS.add(Blocks.ANCIENT_DEBRIS);
         NETHERITE_BLOCKS.add(Blocks.NETHERITE_BLOCK);
-
         ALL_ORES.addAll(DIAMOND_BLOCKS);
         ALL_ORES.addAll(IRON_BLOCKS);
         ALL_ORES.addAll(COAL_BLOCKS);
         ALL_ORES.addAll(EMERALD_BLOCKS);
         ALL_ORES.addAll(NETHERITE_BLOCKS);
-
         NORMAL_CHESTS.add(Blocks.CHEST);
         NORMAL_CHESTS.add(Blocks.TRAPPED_CHEST);
-
         BARREL_BLOCKS.add(Blocks.BARREL);
-
         ENDER_CHESTS.add(Blocks.ENDER_CHEST);
-
         SHULKER_CHESTS.add(Blocks.SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.WHITE_SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.ORANGE_SHULKER_BOX);
@@ -153,7 +132,6 @@ public class BlockEspMod implements ClientModInitializer {
         SHULKER_CHESTS.add(Blocks.GREEN_SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.RED_SHULKER_BOX);
         SHULKER_CHESTS.add(Blocks.BLACK_SHULKER_BOX);
-
         BED_BLOCKS.add(Blocks.WHITE_BED);
         BED_BLOCKS.add(Blocks.ORANGE_BED);
         BED_BLOCKS.add(Blocks.MAGENTA_BED);
@@ -170,7 +148,6 @@ public class BlockEspMod implements ClientModInitializer {
         BED_BLOCKS.add(Blocks.GREEN_BED);
         BED_BLOCKS.add(Blocks.RED_BED);
         BED_BLOCKS.add(Blocks.BLACK_BED);
-
         ALL_CHESTS.addAll(NORMAL_CHESTS);
         ALL_CHESTS.addAll(SHULKER_CHESTS);
         ALL_CHESTS.addAll(BARREL_BLOCKS);
@@ -214,11 +191,8 @@ public class BlockEspMod implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.mog-mod.open_menu",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H,
-                "category.mog-mod.keys"
-        ));
+                "key.mog-mod.open_menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
+                "category.mog-mod.keys"));
 
         Config.init();
         ChunkTracker.register();
@@ -226,26 +200,17 @@ public class BlockEspMod implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
-                if (client.currentScreen == null) {
-                    client.setScreen(new EspMenuScreen());
-                }
+                if (client.currentScreen == null) client.setScreen(new EspMenuScreen());
             }
-
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
             Config.tick(client);
-
-            if (client.player != null && client.player.age % 100 == 0) {
-                ChunkTracker.cleanup();
-            }
-
+            if (client.player != null && client.player.age % 100 == 0) ChunkTracker.cleanup();
             if (client.world == null || client.player == null) return;
-
             tickCounter++;
             if (tickCounter < 10) return;
             tickCounter = 0;
-
             foundBlocks.clear();
             distantBlocks.clear();
             foundChests.clear();
@@ -254,7 +219,6 @@ public class BlockEspMod implements ClientModInitializer {
             foundEnderChests.clear();
             foundBeds.clear();
             foundPlayers.clear();
-
             BlockPos playerPos = client.player.getBlockPos();
             int scanRadius = Math.max(Math.max(oreDistance, chestDistance), playerDistance);
 
@@ -263,27 +227,15 @@ public class BlockEspMod implements ClientModInitializer {
                 for (BlockPos pos : BlockPos.iterate(
                         playerPos.add(-scanRadius, -scanRadius, -scanRadius),
                         playerPos.add(scanRadius, scanRadius, scanRadius))) {
-                    double d = Math.sqrt(pos.getSquaredDistance(playerPos));
-                    if (d > oreDistance) continue;
-
-                    BlockState state = client.world.getBlockState(pos);
-                    if (targets.contains(state.getBlock())) {
+                    if (Math.sqrt(pos.getSquaredDistance(playerPos)) > oreDistance) continue;
+                    if (targets.contains(client.world.getBlockState(pos).getBlock()))
                         foundBlocks.add(pos.toImmutable());
-                    }
                 }
-
                 if (distantEnabled) {
                     for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> entry : ChunkTracker.getSavedChunks().entrySet()) {
-                        ChunkPos chunkPos = entry.getKey();
-                        double dist = Math.sqrt(
-                                Math.pow(chunkPos.getStartX() - playerPos.getX(), 2) +
-                                Math.pow(chunkPos.getStartZ() - playerPos.getZ(), 2)
-                        );
-                        if (dist > oreDistance * 16) {
-                            for (BlockPos pos : entry.getValue().keySet()) {
-                                distantBlocks.add(pos);
-                            }
-                        }
+                        ChunkPos cp = entry.getKey();
+                        double dist = Math.sqrt(Math.pow(cp.getStartX() - playerPos.getX(), 2) + Math.pow(cp.getStartZ() - playerPos.getZ(), 2));
+                        if (dist > oreDistance * 16) distantBlocks.addAll(entry.getValue().keySet());
                     }
                 }
             }
@@ -292,81 +244,59 @@ public class BlockEspMod implements ClientModInitializer {
                 for (BlockPos pos : BlockPos.iterate(
                         playerPos.add(-scanRadius, -scanRadius, -scanRadius),
                         playerPos.add(scanRadius, scanRadius, scanRadius))) {
-                    double d = Math.sqrt(pos.getSquaredDistance(playerPos));
-                    if (d > chestDistance) continue;
-
-                    BlockState state = client.world.getBlockState(pos);
-                    Block block = state.getBlock();
-
+                    if (Math.sqrt(pos.getSquaredDistance(playerPos)) > chestDistance) continue;
+                    Block block = client.world.getBlockState(pos).getBlock();
                     if (!ALL_CHESTS.contains(block)) continue;
                     if (chestType == 1 && !NORMAL_CHESTS.contains(block)) continue;
                     if (chestType == 2 && !SHULKER_CHESTS.contains(block)) continue;
                     if (chestType == 3 && !BARREL_BLOCKS.contains(block)) continue;
                     if (chestType == 4 && !ENDER_CHESTS.contains(block)) continue;
                     if (chestType == 5 && !BED_BLOCKS.contains(block)) continue;
-
-                    BlockPos immutable = pos.toImmutable();
-                    if (NORMAL_CHESTS.contains(block)) foundChests.add(immutable);
-                    else if (SHULKER_CHESTS.contains(block)) foundShulkers.add(immutable);
-                    else if (BARREL_BLOCKS.contains(block)) foundBarrels.add(immutable);
-                    else if (ENDER_CHESTS.contains(block)) foundEnderChests.add(immutable);
-                    else if (BED_BLOCKS.contains(block)) foundBeds.add(immutable);
+                    BlockPos im = pos.toImmutable();
+                    if (NORMAL_CHESTS.contains(block)) foundChests.add(im);
+                    else if (SHULKER_CHESTS.contains(block)) foundShulkers.add(im);
+                    else if (BARREL_BLOCKS.contains(block)) foundBarrels.add(im);
+                    else if (ENDER_CHESTS.contains(block)) foundEnderChests.add(im);
+                    else if (BED_BLOCKS.contains(block)) foundBeds.add(im);
                 }
             }
 
             if (playerEspEnabled) {
                 for (PlayerEntity player : client.world.getPlayers()) {
                     if (player == client.player) continue;
-                    double dist = player.distanceTo(client.player);
-                    if (dist <= playerDistance) {
-                        foundPlayers.add(player);
-                    }
+                    if (player.distanceTo(client.player) <= playerDistance) foundPlayers.add(player);
                 }
             }
         });
 
-        WorldRenderEvents.LAST.register((worldRenderContext) -> {
+        WorldRenderEvents.LAST.register((ctx) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.world == null || client.player == null) return;
-
-            MatrixStack matrices = worldRenderContext.matrixStack();
+            MatrixStack matrices = ctx.matrixStack();
             if (matrices == null) return;
-
-            Vec3d cameraPos = worldRenderContext.camera().getPos();
-            VertexConsumerProvider consumers = worldRenderContext.consumers();
+            Vec3d cam = ctx.camera().getPos();
+            VertexConsumerProvider consumers = ctx.consumers();
             if (consumers == null) return;
-
-            VertexConsumer buffer = consumers.getBuffer(THROUGH_WALLS);
+            VertexConsumer buf = consumers.getBuffer(THROUGH_WALLS);
 
             if (espEnabled) {
-                for (BlockPos pos : foundBlocks) {
-                    drawBox(matrices, buffer, pos, cameraPos, 1.0f, 0.0f, 0.0f, 1.0f);
-                }
-                for (BlockPos pos : distantBlocks) {
-                    drawBox(matrices, buffer, pos, cameraPos, 0.2f, 0.5f, 1.0f, 1.0f);
-                }
+                for (BlockPos pos : foundBlocks) drawBox(matrices, buf, pos, cam, 1f, 0f, 0f, 1f);
+                for (BlockPos pos : distantBlocks) drawBox(matrices, buf, pos, cam, 0.2f, 0.5f, 1f, 1f);
             }
-
             if (chestEspEnabled) {
-                for (BlockPos pos : foundChests)
-                    drawBox(matrices, buffer, pos, cameraPos, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], COLOR_CHEST[3]);
-                for (BlockPos pos : foundShulkers)
-                    drawBox(matrices, buffer, pos, cameraPos, COLOR_SHULKER[0], COLOR_SHULKER[1], COLOR_SHULKER[2], COLOR_SHULKER[3]);
-                for (BlockPos pos : foundBarrels)
-                    drawBox(matrices, buffer, pos, cameraPos, COLOR_BARREL[0], COLOR_BARREL[1], COLOR_BARREL[2], COLOR_BARREL[3]);
-                for (BlockPos pos : foundEnderChests)
-                    drawBox(matrices, buffer, pos, cameraPos, COLOR_ENDER[0], COLOR_ENDER[1], COLOR_ENDER[2], COLOR_ENDER[3]);
-                for (BlockPos pos : foundBeds)
-                    drawBox(matrices, buffer, pos, cameraPos, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], COLOR_BED[3]);
+                for (BlockPos pos : foundChests) drawBox(matrices, buf, pos, cam, COLOR_CHEST[0], COLOR_CHEST[1], COLOR_CHEST[2], 1f);
+                for (BlockPos pos : foundShulkers) drawBox(matrices, buf, pos, cam, COLOR_SHULKER[0], COLOR_SHULKER[1], COLOR_SHULKER[2], 1f);
+                for (BlockPos pos : foundBarrels) drawBox(matrices, buf, pos, cam, COLOR_BARREL[0], COLOR_BARREL[1], COLOR_BARREL[2], 1f);
+                for (BlockPos pos : foundEnderChests) drawBox(matrices, buf, pos, cam, COLOR_ENDER[0], COLOR_ENDER[1], COLOR_ENDER[2], 1f);
+                for (BlockPos pos : foundBeds) drawBox(matrices, buf, pos, cam, COLOR_BED[0], COLOR_BED[1], COLOR_BED[2], 1f);
             }
-
             if (playerEspEnabled) {
                 for (PlayerEntity player : foundPlayers) {
                     Box box = player.getBoundingBox();
-                    VertexRendering.drawBox(matrices, buffer,
-                            box.minX - cameraPos.x, box.minY - cameraPos.y, box.minZ - cameraPos.z,
-                            box.maxX - cameraPos.x, box.maxY - cameraPos.y, box.maxZ - cameraPos.z,
-                            1.0f, 1.0f, 0.0f, 1.0f);
+                    VertexRendering.drawBox(matrices, buf,
+                            box.minX - cam.x, box.minY - cam.y, box.minZ - cam.z,
+                            box.maxX - cam.x, box.maxY - cam.y, box.maxZ - cam.z,
+                            1f, 1f, 0f, 1f);
                 }
             }
 
@@ -375,49 +305,34 @@ public class BlockEspMod implements ClientModInitializer {
                 List<Vec3d> traj = TrajectoryPredictor.getTrajectory();
                 if (!traj.isEmpty()) {
                     Matrix4f mat = matrices.peek().getPositionMatrix();
-
                     for (int i = 0; i < traj.size() - 1; i++) {
-                        drawLine(buffer, mat, traj.get(i), traj.get(i + 1), cameraPos,
-                                TrajectoryPredictor.COLOR[0],
-                                TrajectoryPredictor.COLOR[1],
-                                TrajectoryPredictor.COLOR[2]);
+                        drawLine(buf, mat, traj.get(i), traj.get(i + 1), cam,
+                                TrajectoryPredictor.COLOR[0], TrajectoryPredictor.COLOR[1], TrajectoryPredictor.COLOR[2]);
                     }
-
-                    Vec3d last = traj.get(traj.size() - 1);
-                    drawDiamond(buffer, mat, last, cameraPos, 0.4f);
+                    drawDiamond(buf, mat, traj.get(traj.size() - 1), cam, 0.4f);
                 }
             }
 
             playerMarkers.clear();
             if (playerEspEnabled && !foundPlayers.isEmpty()) {
                 MatrixStack viewStack = new MatrixStack();
-                viewStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(worldRenderContext.camera().getPitch()));
-                viewStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(worldRenderContext.camera().getYaw() + 180.0f));
-
+                viewStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(ctx.camera().getPitch()));
+                viewStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ctx.camera().getYaw() + 180f));
                 Matrix4f viewMatrix = new Matrix4f(viewStack.peek().getPositionMatrix());
-                Matrix4f projMatrix = new Matrix4f(worldRenderContext.projectionMatrix());
-
+                Matrix4f projMatrix = new Matrix4f(ctx.projectionMatrix());
                 int screenW = client.getWindow().getScaledWidth();
                 int screenH = client.getWindow().getScaledHeight();
-
                 for (PlayerEntity player : foundPlayers) {
                     Box box = player.getBoundingBox();
-                    float px = (float) ((box.minX + box.maxX) / 2 - cameraPos.x);
-                    float py = (float) (box.maxY - cameraPos.y + 0.7);
-                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cameraPos.z);
-
-                    Vector4f vec = new Vector4f(px, py, pz, 1.0f);
+                    float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
+                    float py = (float) (box.maxY - cam.y + 0.7);
+                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
+                    Vector4f vec = new Vector4f(px, py, pz, 1f);
                     vec.mul(viewMatrix);
                     vec.mul(projMatrix);
-
                     if (vec.w <= 0.01f) continue;
-
-                    float ndcX = vec.x / vec.w;
-                    float ndcY = vec.y / vec.w;
-
-                    int sx = (int) ((ndcX * 0.5f + 0.5f) * screenW);
-                    int sy = (int) ((0.5f - ndcY * 0.5f) * screenH);
-
+                    int sx = (int) ((vec.x / vec.w * 0.5f + 0.5f) * screenW);
+                    int sy = (int) ((0.5f - vec.y / vec.w * 0.5f) * screenH);
                     PlayerMarker marker = new PlayerMarker();
                     marker.x = sx;
                     marker.y = sy;
@@ -429,46 +344,41 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
 
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
+        HudRenderCallback.EVENT.register((dc, td) -> {
             if (!playerEspEnabled || playerMarkers.isEmpty()) return;
-
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.textRenderer == null) return;
-
             for (PlayerMarker m : playerMarkers) {
                 int nameW = client.textRenderer.getWidth(m.name);
-                drawContext.drawTextWithShadow(client.textRenderer,
-                        Text.literal(m.name),
-                        m.x - nameW / 2, m.y,
-                        0xFFFFFFFF);
-
+                dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nameW / 2, m.y, 0xFFFFFFFF);
                 int hpPercent = (int) ((m.hp / m.maxHp) * 100);
                 int hpColor = 0xFF00FF00;
                 if (hpPercent < 60) hpColor = 0xFFFFFF00;
                 if (hpPercent < 30) hpColor = 0xFFFF0000;
-
                 String hpText = String.format("%.0f", m.hp);
                 int hpW = client.textRenderer.getWidth(hpText);
-                drawContext.drawTextWithShadow(client.textRenderer,
-                        Text.literal(hpText),
-                        m.x - hpW / 2, m.y + 10,
-                        hpColor);
+                dc.drawTextWithShadow(client.textRenderer, Text.literal(hpText), m.x - hpW / 2, m.y + 10, hpColor);
             }
         });
     }
 
-    private static void drawBox(MatrixStack matrices, VertexConsumer buffer,
-                                BlockPos pos, Vec3d cameraPos,
-                                float r, float g, float b, float a) {
-        double x = pos.getX() - cameraPos.x;
-        double y = pos.getY() - cameraPos.y;
-        double z = pos.getZ() - cameraPos.z;
-        VertexRendering.drawBox(matrices, buffer,
-                x, y, z,
-                x + 1, y + 1, z + 1,
-                r, g, b, a);
+    private static void drawBox(MatrixStack m, VertexConsumer b, BlockPos p, Vec3d cam, float r, float g, float bl, float a) {
+        VertexRendering.drawBox(m, b, p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z,
+                p.getX() + 1 - cam.x, p.getY() + 1 - cam.y, p.getZ() + 1 - cam.z, r, g, bl, a);
     }
 
-    private static void drawLine(VertexConsumer buffer, Matrix4f mat,
-                                  Vec3d p1, Vec3d p2, Vec3d cam,
-                             
+    private static void drawLine(VertexConsumer b, Matrix4f m, Vec3d p1, Vec3d p2, Vec3d cam, float r, float g, float bl) {
+        b.vertex(m, (float)(p1.x - cam.x), (float)(p1.y - cam.y), (float)(p1.z - cam.z)).color(r, g, bl, 1f).normal(0f, 1f, 0f);
+        b.vertex(m, (float)(p2.x - cam.x), (float)(p2.y - cam.y), (float)(p2.z - cam.z)).color(r, g, bl, 1f).normal(0f, 1f, 0f);
+    }
+
+    private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d cam, float s) {
+        float cx = (float)(c.x - cam.x), cy = (float)(c.y - cam.y), cz = (float)(c.z - cam.z);
+        float[][] pts = {{cx, cy + s, cz}, {cx + s, cy, cz}, {cx, cy - s, cz}, {cx - s, cy, cz}};
+        for (int i = 0; i < 4; i++) {
+            float[] a = pts[i], d = pts[(i + 1) % 4];
+            b.vertex(m, a[0], a[1], a[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
+            b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
+        }
+    }
+                        }
