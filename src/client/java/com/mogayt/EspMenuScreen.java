@@ -22,19 +22,19 @@ public class EspMenuScreen extends Screen {
 
         espW = 200; espH = 20;
         espX = this.width / 2 - 100;
-        espY = centerY - 140;
+        espY = centerY - 150;
 
         chestW = 200; chestH = 20;
         chestX = this.width / 2 - 100;
-        chestY = centerY - 110;
+        chestY = centerY - 120;
 
         playerW = 200; playerH = 20;
         playerX = this.width / 2 - 100;
-        playerY = centerY - 80;
+        playerY = centerY - 90;
 
         chatW = 200; chatH = 20;
         chatX = this.width / 2 - 100;
-        chatY = centerY - 50;
+        chatY = centerY - 60;
 
         // ESP руды
         this.addDrawableChild(ButtonWidget.builder(
@@ -76,7 +76,7 @@ public class EspMenuScreen extends Screen {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY - 30, 200, 20).build());
 
         // Freecam
         this.addDrawableChild(ButtonWidget.builder(
@@ -86,7 +86,7 @@ public class EspMenuScreen extends Screen {
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 10, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY, 200, 20).build());
 
         // Distant
         this.addDrawableChild(ButtonWidget.builder(
@@ -95,7 +95,7 @@ public class EspMenuScreen extends Screen {
                     BlockEspMod.distantEnabled = !BlockEspMod.distantEnabled;
                     button.setMessage(Text.literal(BlockEspMod.distantEnabled ? "Distant: ВКЛ" : "Distant: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 40, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 30, 200, 20).build());
 
         // Fix Lag
         this.addDrawableChild(ButtonWidget.builder(
@@ -104,13 +104,22 @@ public class EspMenuScreen extends Screen {
                     Optimizer.enabled = !Optimizer.enabled;
                     button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY + 70, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 60, 200, 20).build());
+
+        // Trajectory
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
+                (button) -> {
+                    TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
+                    button.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"));
+                }
+        ).dimensions(this.width / 2 - 100, centerY + 90, 200, 20).build());
 
         // Закрыть
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (button) -> this.close()
-        ).dimensions(this.width / 2 - 100, centerY + 110, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, centerY + 130, 200, 20).build());
     }
 
     private String getEspLabel() {
