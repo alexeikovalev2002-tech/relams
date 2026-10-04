@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
@@ -17,7 +16,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
@@ -27,7 +25,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class BlockEspMod implements ClientModInitializer {
@@ -40,7 +37,6 @@ public class BlockEspMod implements ClientModInitializer {
     public static int chestDistance = 24;
     public static boolean playerEspEnabled = false;
     public static int playerDistance = 64;
-    public static boolean distantEnabled = false;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
@@ -65,7 +61,6 @@ public class BlockEspMod implements ClientModInitializer {
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
     private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
-    private static final List<BlockPos> distantBlocks = new ArrayList<>();
     private static final List<BlockPos> foundChests = new ArrayList<>();
     private static final List<BlockPos> foundShulkers = new ArrayList<>();
     private static final List<BlockPos> foundBarrels = new ArrayList<>();
@@ -194,10 +189,8 @@ public class BlockEspMod implements ClientModInitializer {
                 "key.mog-mod.open_menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
                 "category.mog-mod.keys"));
 
-        ChunkTracker.register();
         ChatBind.register();
 
-        // AimMobs — на START_CLIENT_TICK, чтобы камера успевала обновиться до рендера
         ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -207,13 +200,11 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
-            if (client.player != null && client.player.age % 100 == 0) ChunkTracker.cleanup();
             if (client.world == null || client.player == null) return;
             tickCounter++;
             if (tickCounter < 10) return;
             tickCounter = 0;
             foundBlocks.clear();
-            distantBlocks.clear();
             foundChests.clear();
             foundShulkers.clear();
             foundBarrels.clear();
@@ -228,13 +219,6 @@ public class BlockEspMod implements ClientModInitializer {
                 for (BlockPos pos : BlockPos.iterate(pp.add(-scan, -scan, -scan), pp.add(scan, scan, scan))) {
                     if (Math.sqrt(pos.getSquaredDistance(pp)) > oreDistance) continue;
                     if (targets.contains(client.world.getBlockState(pos).getBlock())) foundBlocks.add(pos.toImmutable());
-                }
-                if (distantEnabled) {
-                    for (Map.Entry<ChunkPos, Map<BlockPos, BlockState>> e : ChunkTracker.getSavedChunks().entrySet()) {
-                        ChunkPos cp = e.getKey();
-                        double d = Math.sqrt(Math.pow(cp.getStartX() - pp.getX(), 2) + Math.pow(cp.getStartZ() - pp.getZ(), 2));
-                        if (d > oreDistance * 16) distantBlocks.addAll(e.getValue().keySet());
-                    }
                 }
             }
 
@@ -278,7 +262,6 @@ public class BlockEspMod implements ClientModInitializer {
 
             if (espEnabled) {
                 for (BlockPos pos : foundBlocks) RenderHelper.drawBox(buf, mat, pos, cam, 1f, 0f, 0f);
-                for (BlockPos pos : distantBlocks) RenderHelper.drawBox(buf, mat, pos, cam, 0.2f, 0.5f, 1f);
             }
             if (chestEspEnabled) {
                 for (BlockPos pos : foundChests) RenderHelper.drawBox(buf, mat, pos, cam, C_CHEST[0], C_CHEST[1], C_CHEST[2]);
@@ -371,4 +354,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                }
+                    }
