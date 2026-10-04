@@ -40,7 +40,6 @@ public class AimMobs {
             double angle = Math.toDegrees(Math.acos(dot));
             if (angle > fovAngle) continue;
 
-            // Проверка: есть ли прямая видимость
             Vec3d eyePos = player.getEyePos();
             Vec3d targetEye = living.getPos().add(0, living.getHeight() / 2.0, 0);
             BlockHitResult hit = client.world.raycast(new RaycastContext(
@@ -49,7 +48,7 @@ public class AimMobs {
                     RaycastContext.FluidHandling.NONE,
                     player
             ));
-            if (hit.getType() == HitResult.Type.BLOCK) continue; // стена — пропускаем
+            if (hit.getType() == HitResult.Type.BLOCK) continue;
 
             if (dist < minDist) {
                 minDist = dist;
@@ -78,12 +77,17 @@ public class AimMobs {
 
         float pitchDiff = targetPitch - curPitch;
 
-        // Плавный lerp: маленький коэффициент = плавно, большой = быстро
         float factor = (float) (aimSpeed / 100.0);
-        if (factor > 0.5f) factor = 0.5f;
+        if (factor > 1.0f) factor = 1.0f;
         if (factor < 0.01f) factor = 0.01f;
 
-        player.setYaw(curYaw + yawDiff * factor);
-        player.setPitch(curPitch + pitchDiff * factor);
+        float newYaw = curYaw + yawDiff * factor;
+        float newPitch = curPitch + pitchDiff * factor;
+
+        // ВАЖНО: сохраняем старые значения как prev — тогда Minecraft плавно интерполирует
+        player.prevYaw = curYaw;
+        player.prevPitch = curPitch;
+        player.setYaw(newYaw);
+        player.setPitch(newPitch);
     }
 }
