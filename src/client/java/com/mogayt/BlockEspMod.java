@@ -345,15 +345,12 @@ public class BlockEspMod implements ClientModInitializer {
                 int radius = (int) (sh * 0.5 * Math.tan(fovRad) / Math.tan(Math.toRadians(70.0)));
                 if (radius < 10) radius = 10;
                 if (radius > sh / 2) radius = sh / 2;
-                int segments = 180;
+                int segments = 360;
                 for (int i = 0; i < segments; i++) {
-                    double a1 = i * Math.PI * 2.0 / segments;
-                    double a2 = (i + 1) * Math.PI * 2.0 / segments;
-                    int x1 = cx + (int)(Math.cos(a1) * radius);
-                    int y1 = cy + (int)(Math.sin(a1) * radius);
-                    int x2 = cx + (int)(Math.cos(a2) * radius);
-                    int y2 = cy + (int)(Math.sin(a2) * radius);
-                    dc.fill(Math.min(x1,x2)-2, Math.min(y1,y2)-2, Math.max(x1,x2)+2, Math.max(y1,y2)+2, 0xFFFFFFFF);
+                    double a = i * Math.PI * 2.0 / segments;
+                    int x = cx + (int) Math.round(Math.cos(a) * radius);
+                    int y = cy + (int) Math.round(Math.sin(a) * radius);
+                    dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
                 }
             }
 
@@ -372,4 +369,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                                                                      }
+    }
