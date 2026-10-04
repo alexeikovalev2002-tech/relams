@@ -220,6 +220,7 @@ public class BlockEspMod implements ClientModInitializer {
                 "category.mog-mod.keys"
         ));
 
+        Config.init();
         ChunkTracker.register();
         ChatBind.register();
 
@@ -233,6 +234,7 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
+            Config.tick(client);
 
             if (client.player != null && client.player.age % 100 == 0) {
                 ChunkTracker.cleanup();
@@ -371,17 +373,21 @@ public class BlockEspMod implements ClientModInitializer {
             // ===== ТРАЕКТОРИЯ =====
             TrajectoryPredictor.update(client);
             if (TrajectoryPredictor.enabled) {
-                for (Vec3d pos : TrajectoryPredictor.getTrajectory()) {
-                    double x = pos.x - cameraPos.x - 0.025;
-                    double y = pos.y - cameraPos.y - 0.025;
-                    double z = pos.z - cameraPos.z - 0.025;
-                    VertexRendering.drawBox(matrices, buffer,
-                            x, y, z,
-                            x + 0.05, y + 0.05, z + 0.05,
-                            TrajectoryPredictor.COLOR[0],
-                            TrajectoryPredictor.COLOR[1],
-                            TrajectoryPredictor.COLOR[2],
-                            TrajectoryPredictor.COLOR[3]);
+                List<Vec3d> traj = TrajectoryPredictor.getTrajectory();
+                if (!traj.isEmpty()) {
+                    Matrix4f mat = matrices.peek().getPositionMatrix();
+
+                    // Изогнутая линия
+                    for (int i = 0; i < traj.size() - 1; i++) {
+                        drawLine(buffer, mat, traj.get(i), traj.get(i + 1), cameraPos,
+                                TrajectoryPredictor.COLOR[0],
+                                TrajectoryPredictor.COLOR[1],
+                                TrajectoryPredictor.COLOR[2]);
+                    }
+
+                    // Ромб в точке приземления
+                    Vec3d last = traj.get(traj.size() - 1);
+                    drawDiamond(buffer, mat, last, cameraPos, 0.4f);
                 }
             }
 
@@ -465,4 +471,5 @@ public class BlockEspMod implements ClientModInitializer {
                 x + 1, y + 1, z + 1,
                 r, g, b, a);
     }
-                }
+
+    private static void drawLine(Vertex
