@@ -204,6 +204,7 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
+            AimMobs.tick(client);
             if (client.player != null && client.player.age % 100 == 0) ChunkTracker.cleanup();
             if (client.world == null || client.player == null) return;
             tickCounter++;
@@ -337,8 +338,26 @@ public class BlockEspMod implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((dc, td) -> {
-            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
             MinecraftClient client = MinecraftClient.getInstance();
+            if (client.getWindow() == null) return;
+            int sw = client.getWindow().getScaledWidth();
+            int sh = client.getWindow().getScaledHeight();
+
+            // Круг AimMobs
+            if (AimMobs.enabled) {
+                int cx = sw / 2;
+                int cy = sh / 2;
+                int radius = (int)(sh * 0.15);
+                int segments = 90;
+                for (int i = 0; i < segments; i++) {
+                    double angle = i * Math.PI * 2.0 / segments;
+                    int x = cx + (int)(Math.cos(angle) * radius);
+                    int y = cy + (int)(Math.sin(angle) * radius);
+                    dc.fill(x, y, x + 2, y + 2, 0xFFFFFFFF);
+                }
+            }
+
+            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
             if (client.textRenderer == null) return;
             for (PlayerMarker m : playerMarkers) {
                 int nameW = client.textRenderer.getWidth(m.name);
@@ -361,41 +380,21 @@ public class BlockEspMod implements ClientModInitializer {
 
     private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float s) {
         Vec3d visualPos = c.add(n.multiply(0.03));
-
         float cx = (float)(visualPos.x - cam.x);
         float cy = (float)(visualPos.y - cam.y);
         float cz = (float)(visualPos.z - cam.z);
-
         float[][] pts;
-
         if (Math.abs(n.y) > 0.5) {
-            pts = new float[][]{
-                    {cx, cy, cz + s},
-                    {cx + s, cy, cz},
-                    {cx, cy, cz - s},
-                    {cx - s, cy, cz}
-            };
+            pts = new float[][]{{cx, cy, cz + s}, {cx + s, cy, cz}, {cx, cy, cz - s}, {cx - s, cy, cz}};
         } else if (Math.abs(n.x) > 0.5) {
-            pts = new float[][]{
-                    {cx, cy + s, cz},
-                    {cx, cy, cz + s},
-                    {cx, cy - s, cz},
-                    {cx, cy, cz - s}
-            };
+            pts = new float[][]{{cx, cy + s, cz}, {cx, cy, cz + s}, {cx, cy - s, cz}, {cx, cy, cz - s}};
         } else {
-            pts = new float[][]{
-                    {cx, cy + s, cz},
-                    {cx + s, cy, cz},
-                    {cx, cy - s, cz},
-                    {cx - s, cy, cz}
-            };
+            pts = new float[][]{{cx, cy + s, cz}, {cx + s, cy, cz}, {cx, cy - s, cz}, {cx - s, cy, cz}};
         }
-
         for (int i = 0; i < 4; i++) {
-            float[] a = pts[i];
-            float[] d = pts[(i + 1) % 4];
+            float[] a = pts[i], d = pts[(i + 1) % 4];
             b.vertex(m, a[0], a[1], a[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
             b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
         }
     }
-                                        }
+                }
