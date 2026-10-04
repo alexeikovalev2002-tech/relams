@@ -1,26 +1,21 @@
 package com.mogayt;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.RaycastContext;
 
 public class TrajectoryPredictor {
 
     public static boolean enabled = false;
-    private static final List<Vec3d> trajectory = new ArrayList<>();
     public static Vec3d impactPoint = null;
     public static Vec3d impactNormal = new Vec3d(0, 1, 0);
 
-    public static final float[] COLOR = {0.2f, 1.0f, 0.2f, 1.0f};
-
     public static void update(MinecraftClient client) {
-        trajectory.clear();
         impactPoint = null;
         impactNormal = new Vec3d(0, 1, 0);
         if (!enabled || client.player == null || client.world == null) return;
@@ -64,52 +59,26 @@ public class TrajectoryPredictor {
         Vec3d vel = new Vec3d(dx * velocity, dy * velocity, dz * velocity);
 
         for (int i = 0; i < 300; i++) {
-            trajectory.add(pos);
-            Vec3d prevPos = pos;
-            pos = pos.add(vel);
+            Vec3d nextPos = pos.add(vel);
+
+            BlockHitResult hit = client.world.raycast(new RaycastContext(
+                    pos, nextPos,
+                    RaycastContext.ShapeType.COLLIDER,
+                    RaycastContext.FluidHandling.NONE,
+                    player
+            ));
+
+            if (hit.getType() == HitResult.Type.BLOCK) {
+                impactPoint = hit.getPos();
+                Vec3i side = hit.getSide().getVector();
+                impactNormal = new Vec3d(side.getX(), side.getY(), side.getZ());
+                return;
+            }
+
+            pos = nextPos;
             vel = new Vec3d(vel.x * drag, vel.y * drag - gravity, vel.z * drag);
 
-            if (pos.y < client.world.getBottomY() - 5 || pos.y > 400) break;
-
-            BlockPos bp = BlockPos.ofFloored(pos);
-            BlockState state = client.world.getBlockState(bp);
-            if (!state.isAir()) {
-                double px = prevPos.x, py = prevPos.y, pz = prevPos.z;
-                double bx1 = bp.getX(), by1 = bp.getY(), bz1 = bp.getZ();
-                double bx2 = bx1 + 1, by2 = by1 + 1, bz2 = bz1 + 1;
-
-                double ddx = Math.abs(pos.x - prevPos.x);
-                double ddy = Math.abs(pos.y - prevPos.y);
-                double ddz = Math.abs(pos.z - prevPos.z);
-
-                if (ddx >= ddy && ddx >= ddz) {
-                    if (px < bx1) impactNormal = new Vec3d(-1, 0, 0);
-                    else impactNormal = new Vec3d(1, 0, 0);
-                } else if (ddy >= ddx && ddy >= ddz) {
-                    if (py < by1) impactNormal = new Vec3d(0, -1, 0);
-                    else impactNormal = new Vec3d(0, 1, 0);
-                } else {
-                    if (pz < bz1) impactNormal = new Vec3d(0, 0, -1);
-                    else impactNormal = new Vec3d(0, 0, 1);
-                }
-
-                double sx, sy, sz;
-                if (impactNormal.x != 0) {
-                    sx = impactNormal.x > 0 ? bx2 : bx1;
-                    sy = pos.y; sz = pos.z;
-                } else if (impactNormal.y != 0) {
-                    sy = impactNormal.y > 0 ? by2 : by1;
-                    sx = pos.x; sz = pos.z;
-                } else {
-                    sz = impactNormal.z > 0 ? bz2 : bz1;
-                    sx = pos.x; sy = pos.y;
-                }
-                impactPoint = new Vec3d(sx, sy, sz);
-                trajectory.add(impactPoint);
-                break;
-            }
+            if (pos.y < client.world.getBottomY() - 5 || pos.y > 400) return;
         }
     }
-
-    public static List<Vec3d> getTrajectory() { return trajectory; }
 }
