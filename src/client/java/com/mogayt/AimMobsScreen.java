@@ -30,7 +30,7 @@ public class AimMobsScreen extends Screen {
         speedField.setChangedListener(text -> {
             try {
                 double v = Double.parseDouble(text.trim());
-                if (v > 0 && v <= 30) AimMobs.aimSpeed = v;
+                if (v > 0 && v <= 50) AimMobs.aimSpeed = v;
             } catch (Exception ignored) {}
         });
         this.addDrawableChild(speedField);
@@ -70,7 +70,7 @@ public class AimMobsScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("Скорость (1-30)"), this.width / 2, this.height / 2 - 57, 0xAAAAAA);
+                Text.literal("Скорость (1-50, меньше = плавнее)"), this.width / 2, this.height / 2 - 57, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Дистанция (1-128)"), this.width / 2, this.height / 2 - 12, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer,
