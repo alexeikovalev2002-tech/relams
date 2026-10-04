@@ -1,11 +1,13 @@
 package com.mogayt;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 
 public class AimMobs {
 
@@ -34,11 +36,20 @@ public class AimMobs {
                     .add(0, living.getHeight() / 2.0, 0)
                     .subtract(player.getEyePos())
                     .normalize();
-            double dot = look.dotProduct(toTarget);
-            dot = Math.max(-1.0, Math.min(1.0, dot));
+            double dot = Math.max(-1.0, Math.min(1.0, look.dotProduct(toTarget)));
             double angle = Math.toDegrees(Math.acos(dot));
-
             if (angle > fovAngle) continue;
+
+            // Проверка: есть ли прямая видимость
+            Vec3d eyePos = player.getEyePos();
+            Vec3d targetEye = living.getPos().add(0, living.getHeight() / 2.0, 0);
+            BlockHitResult hit = client.world.raycast(new RaycastContext(
+                    eyePos, targetEye,
+                    RaycastContext.ShapeType.COLLIDER,
+                    RaycastContext.FluidHandling.NONE,
+                    player
+            ));
+            if (hit.getType() == HitResult.Type.BLOCK) continue; // стена — пропускаем
 
             if (dist < minDist) {
                 minDist = dist;
@@ -66,11 +77,13 @@ public class AimMobs {
         while (yawDiff < -180) yawDiff += 360;
 
         float pitchDiff = targetPitch - curPitch;
-        float step = (float) aimSpeed;
-        float yawStep = Math.max(-step, Math.min(step, yawDiff));
-        float pitchStep = Math.max(-step, Math.min(step, pitchDiff));
 
-        player.setYaw(curYaw + yawStep);
-        player.setPitch(curPitch + pitchStep);
+        // Плавный lerp: маленький коэффициент = плавно, большой = быстро
+        float factor = (float) (aimSpeed / 100.0);
+        if (factor > 0.5f) factor = 0.5f;
+        if (factor < 0.01f) factor = 0.01f;
+
+        player.setYaw(curYaw + yawDiff * factor);
+        player.setPitch(curPitch + pitchDiff * factor);
     }
 }
