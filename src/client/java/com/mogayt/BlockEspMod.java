@@ -299,16 +299,10 @@ public class BlockEspMod implements ClientModInitializer {
             }
 
             TrajectoryPredictor.update(client);
-            if (TrajectoryPredictor.enabled) {
-                List<Vec3d> traj = TrajectoryPredictor.getTrajectory();
-                if (!traj.isEmpty()) {
-                    Matrix4f mat = matrices.peek().getPositionMatrix();
-                    for (int i = 0; i < traj.size() - 1; i++) {
-                        drawLine(buf, mat, traj.get(i), traj.get(i + 1), cam,
-                                TrajectoryPredictor.COLOR[0], TrajectoryPredictor.COLOR[1], TrajectoryPredictor.COLOR[2]);
-                    }
-                    drawDiamond(buf, mat, traj.get(traj.size() - 1), cam, 0.4f);
-                }
+            if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
+                Matrix4f mat = matrices.peek().getPositionMatrix();
+                drawDiamond(buf, mat, TrajectoryPredictor.impactPoint,
+                        TrajectoryPredictor.impactNormal, cam, 0.4f);
             }
 
             playerMarkers.clear();
@@ -365,18 +359,41 @@ public class BlockEspMod implements ClientModInitializer {
                 p.getX() + 1 - cam.x, p.getY() + 1 - cam.y, p.getZ() + 1 - cam.z, r, g, bl, a);
     }
 
-    private static void drawLine(VertexConsumer b, Matrix4f m, Vec3d p1, Vec3d p2, Vec3d cam, float r, float g, float bl) {
-        b.vertex(m, (float)(p1.x - cam.x), (float)(p1.y - cam.y), (float)(p1.z - cam.z)).color(r, g, bl, 1f).normal(0f, 1f, 0f);
-        b.vertex(m, (float)(p2.x - cam.x), (float)(p2.y - cam.y), (float)(p2.z - cam.z)).color(r, g, bl, 1f).normal(0f, 1f, 0f);
-    }
+    private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float s) {
+        float cx = (float)(c.x - cam.x);
+        float cy = (float)(c.y - cam.y);
+        float cz = (float)(c.z - cam.z);
 
-    private static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d cam, float s) {
-        float cx = (float)(c.x - cam.x), cy = (float)(c.y - cam.y), cz = (float)(c.z - cam.z);
-        float[][] pts = {{cx, cy + s, cz}, {cx + s, cy, cz}, {cx, cy - s, cz}, {cx - s, cy, cz}};
+        float[][] pts;
+
+        if (Math.abs(n.y) > 0.5) {
+            pts = new float[][]{
+                    {cx, cy, cz + s},
+                    {cx + s, cy, cz},
+                    {cx, cy, cz - s},
+                    {cx - s, cy, cz}
+            };
+        } else if (Math.abs(n.x) > 0.5) {
+            pts = new float[][]{
+                    {cx, cy + s, cz},
+                    {cx, cy, cz + s},
+                    {cx, cy - s, cz},
+                    {cx, cy, cz - s}
+            };
+        } else {
+            pts = new float[][]{
+                    {cx, cy + s, cz},
+                    {cx + s, cy, cz},
+                    {cx, cy - s, cz},
+                    {cx - s, cy, cz}
+            };
+        }
+
         for (int i = 0; i < 4; i++) {
-            float[] a = pts[i], d = pts[(i + 1) % 4];
+            float[] a = pts[i];
+            float[] d = pts[(i + 1) % 4];
             b.vertex(m, a[0], a[1], a[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
             b.vertex(m, d[0], d[1], d[2]).color(1f, 0.2f, 0.2f, 1f).normal(0f, 1f, 0f);
         }
     }
-            }
+                        }
