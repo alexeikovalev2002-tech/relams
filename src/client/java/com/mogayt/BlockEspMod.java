@@ -370,14 +370,12 @@ public class BlockEspMod implements ClientModInitializer {
                 }
             }
 
-            // ===== ТРАЕКТОРИЯ =====
             TrajectoryPredictor.update(client);
             if (TrajectoryPredictor.enabled) {
                 List<Vec3d> traj = TrajectoryPredictor.getTrajectory();
                 if (!traj.isEmpty()) {
                     Matrix4f mat = matrices.peek().getPositionMatrix();
 
-                    // Изогнутая линия
                     for (int i = 0; i < traj.size() - 1; i++) {
                         drawLine(buffer, mat, traj.get(i), traj.get(i + 1), cameraPos,
                                 TrajectoryPredictor.COLOR[0],
@@ -385,7 +383,6 @@ public class BlockEspMod implements ClientModInitializer {
                                 TrajectoryPredictor.COLOR[2]);
                     }
 
-                    // Ромб в точке приземления
                     Vec3d last = traj.get(traj.size() - 1);
                     drawDiamond(buffer, mat, last, cameraPos, 0.4f);
                 }
@@ -472,4 +469,6 @@ public class BlockEspMod implements ClientModInitializer {
                 r, g, b, a);
     }
 
-    private static void drawLine(Vertex
+    private static void drawLine(VertexConsumer buffer, Matrix4f mat,
+                                  Vec3d p1, Vec3d p2, Vec3d cam,
+                             
