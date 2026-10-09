@@ -1,7 +1,12 @@
 package com.mogayt;
 
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,8 +16,6 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +33,7 @@ public class EspRenderer {
         HudRenderCallback.EVENT.register(EspRenderer::renderHud);
     }
 
-    private static void renderWorld(WorldRenderEvents.Last ctx) {
+    private static void renderWorld(WorldRenderContext ctx) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
         MatrixStack matrices = ctx.matrixStack();
@@ -125,7 +128,7 @@ public class EspRenderer {
         }
     }
 
-    private static void renderHud(net.minecraft.client.gui.DrawContext dc, float td) {
+    private static void renderHud(DrawContext dc, RenderTickCounter td) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.getWindow() == null) return;
         int sw = client.getWindow().getScaledWidth();
@@ -162,4 +165,4 @@ public class EspRenderer {
             dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
         }
     }
-                              }
+                    }
