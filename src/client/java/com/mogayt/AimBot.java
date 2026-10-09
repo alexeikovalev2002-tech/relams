@@ -27,7 +27,7 @@ public class AimBot {
         PlayerEntity me = client.player;
 
         // Работаем ТОЛЬКО при полёте вниз
-        if (me.getVelocity().y >= 0) return;
+        if (me.fallDistance <= 0.0f) return;
 
         double maxSq = distance * distance;
         PlayerEntity target = null;
@@ -65,11 +65,9 @@ public class AimBot {
         float newYaw = curYaw + yawDiff * factor;
         float newPitch = curPitch + pitchDiff * factor;
 
-        // Плавный поворот — не трогаем prevYaw/prevPitch
         me.setYaw(newYaw);
         me.setPitch(newPitch);
 
-        // Удар только при почти идеальном наведении
         Vec3d look = me.getRotationVector();
         Vec3d toTarget = targetEye.subtract(eye).normalize();
         double dot = look.dotProduct(toTarget);
