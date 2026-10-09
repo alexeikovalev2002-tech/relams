@@ -30,6 +30,11 @@ public class Config {
             w.println("aimSpeed=" + AimMobs.aimSpeed);
             w.println("aimDistance=" + AimMobs.aimDistance);
             w.println("aimFov=" + AimMobs.fovAngle);
+            w.println("aimBot=" + AimBot.enabled);
+            w.println("aimBotDelayMin=" + AimBot.delayMin);
+            w.println("aimBotDelayMax=" + AimBot.delayMax);
+            w.println("aimBotDist=" + AimBot.distance);
+            w.println("aimBotSpeed=" + AimBot.rotateSpeed);
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
@@ -69,6 +74,11 @@ public class Config {
                     else if (k.equals("aimSpeed")) AimMobs.aimSpeed = Double.parseDouble(v);
                     else if (k.equals("aimDistance")) AimMobs.aimDistance = Double.parseDouble(v);
                     else if (k.equals("aimFov")) AimMobs.fovAngle = Double.parseDouble(v);
+                    else if (k.equals("aimBot")) AimBot.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("aimBotDelayMin")) AimBot.delayMin = Double.parseDouble(v);
+                    else if (k.equals("aimBotDelayMax")) AimBot.delayMax = Double.parseDouble(v);
+                    else if (k.equals("aimBotDist")) AimBot.distance = Double.parseDouble(v);
+                    else if (k.equals("aimBotSpeed")) AimBot.rotateSpeed = Double.parseDouble(v);
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
