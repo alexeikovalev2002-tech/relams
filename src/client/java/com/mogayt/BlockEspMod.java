@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
@@ -72,6 +73,7 @@ public class BlockEspMod implements ClientModInitializer {
     private static final List<BlockPos> foundEnderChests = new ArrayList<>();
     private static final List<BlockPos> foundBeds = new ArrayList<>();
     private static int tickCounter = 0;
+    private static BlockPos lastScanPos = null;
 
     private static class PlayerMarker {
         int x, y;
@@ -212,60 +214,23 @@ public class BlockEspMod implements ClientModInitializer {
             Freecam.tick(client);
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
+
+            // Игроки — каждый тик (они мало весят)
+            updatePlayers(client);
+
+            // Предметы — раз в 5 тиков
+            if (tickCounter % 5 == 0) updateItems(client);
+
             tickCounter++;
             if (tickCounter < 10) return;
             tickCounter = 0;
-            foundBlocks.clear();
-            foundChests.clear();
-            foundShulkers.clear();
-            foundBarrels.clear();
-            foundEnderChests.clear();
-            foundBeds.clear();
-            foundPlayers.clear();
-            foundItems.clear();
+
+            // Блоки — раз в 10 тиков и только если игрок сдвинулся
             BlockPos pp = client.player.getBlockPos();
-            int scan = Math.max(Math.max(Math.max(oreDistance, chestDistance), playerDistance), itemDistance);
+            if (lastScanPos != null && lastScanPos.getSquaredDistance(pp) < 16) return;
+            lastScanPos = pp;
 
-            if (espEnabled) {
-                Set<Block> targets = getTargetBlocks();
-                for (BlockPos pos : BlockPos.iterate(pp.add(-scan, -scan, -scan), pp.add(scan, scan, scan))) {
-                    if (Math.sqrt(pos.getSquaredDistance(pp)) > oreDistance) continue;
-                    if (targets.contains(client.world.getBlockState(pos).getBlock())) foundBlocks.add(pos.toImmutable());
-                }
-            }
-
-            if (chestEspEnabled) {
-                for (BlockPos pos : BlockPos.iterate(pp.add(-scan, -scan, -scan), pp.add(scan, scan, scan))) {
-                    if (Math.sqrt(pos.getSquaredDistance(pp)) > chestDistance) continue;
-                    Block b = client.world.getBlockState(pos).getBlock();
-                    if (!ALL_CHESTS.contains(b)) continue;
-                    if (chestType == 1 && !NORMAL_CHESTS.contains(b)) continue;
-                    if (chestType == 2 && !SHULKER_CHESTS.contains(b)) continue;
-                    if (chestType == 3 && !BARREL_BLOCKS.contains(b)) continue;
-                    if (chestType == 4 && !ENDER_CHESTS.contains(b)) continue;
-                    if (chestType == 5 && !BED_BLOCKS.contains(b)) continue;
-                    BlockPos im = pos.toImmutable();
-                    if (NORMAL_CHESTS.contains(b)) foundChests.add(im);
-                    else if (SHULKER_CHESTS.contains(b)) foundShulkers.add(im);
-                    else if (BARREL_BLOCKS.contains(b)) foundBarrels.add(im);
-                    else if (ENDER_CHESTS.contains(b)) foundEnderChests.add(im);
-                    else if (BED_BLOCKS.contains(b)) foundBeds.add(im);
-                }
-            }
-
-            if (playerEspEnabled) {
-                for (PlayerEntity p : client.world.getPlayers()) {
-                    if (p == client.player) continue;
-                    if (p.distanceTo(client.player) <= playerDistance) foundPlayers.add(p);
-                }
-            }
-
-            if (itemEspEnabled) {
-                for (ItemEntity item : client.world.getEntitiesByClass(ItemEntity.class,
-                        client.player.getBoundingBox().expand(itemDistance), e -> true)) {
-                    if (item.distanceTo(client.player) <= itemDistance) foundItems.add(item);
-                }
-            }
+            updateBlocks(client, pp);
         });
 
         WorldRenderEvents.LAST.register((ctx) -> {
@@ -326,36 +291,39 @@ public class BlockEspMod implements ClientModInitializer {
                 int sw = client.getWindow().getScaledWidth();
                 int sh = client.getWindow().getScaledHeight();
 
-                for (PlayerEntity p : foundPlayers) {
-                    Box box = p.getBoundingBox();
-                    float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
-                    float py = (float) (box.maxY - cam.y + 0.7);
-                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
-                    Vector4f v = new Vector4f(px, py, pz, 1f);
-                    v.mul(vm); v.mul(pm);
-                    if (v.w <= 0.01f) continue;
-                    PlayerMarker marker = new PlayerMarker();
-                    marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
-                    marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
-                    marker.name = p.getName().getString();
-                    marker.hp = p.getHealth();
-                    marker.maxHp = p.getMaxHealth();
-                    playerMarkers.add(marker);
+                if (playerEspEnabled) {
+                    for (PlayerEntity p : foundPlayers) {
+                        Box box = p.getBoundingBox();
+                        float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
+                        float py = (float) (box.maxY - cam.y + 0.7);
+                        float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
+                        Vector4f v = new Vector4f(px, py, pz, 1f);
+                        v.mul(vm); v.mul(pm);
+                        if (v.w <= 0.01f) continue;
+                        PlayerMarker marker = new PlayerMarker();
+                        marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
+                        marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
+                        marker.name = p.getName().getString();
+                        marker.hp = p.getHealth();
+                        marker.maxHp = p.getMaxHealth();
+                        playerMarkers.add(marker);
+                    }
                 }
-
-                for (ItemEntity it : foundItems) {
-                    Box box = it.getBoundingBox();
-                    float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
-                    float py = (float) (box.maxY - cam.y + 0.5);
-                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
-                    Vector4f v = new Vector4f(px, py, pz, 1f);
-                    v.mul(vm); v.mul(pm);
-                    if (v.w <= 0.01f) continue;
-                    ItemMarker marker = new ItemMarker();
-                    marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
-                    marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
-                    marker.name = it.getStack().getName().getString();
-                    itemMarkers.add(marker);
+                if (itemEspEnabled) {
+                    for (ItemEntity it : foundItems) {
+                        Box box = it.getBoundingBox();
+                        float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
+                        float py = (float) (box.maxY - cam.y + 0.5);
+                        float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
+                        Vector4f v = new Vector4f(px, py, pz, 1f);
+                        v.mul(vm); v.mul(pm);
+                        if (v.w <= 0.01f) continue;
+                        ItemMarker marker = new ItemMarker();
+                        marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
+                        marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
+                        marker.name = it.getStack().getName().getString();
+                        itemMarkers.add(marker);
+                    }
                 }
             }
         });
@@ -373,8 +341,8 @@ public class BlockEspMod implements ClientModInitializer {
                 int radius = (int) (sh * 0.5 * Math.tan(fovRad) / Math.tan(Math.toRadians(70.0)));
                 if (radius < 10) radius = 10;
                 if (radius > sh / 2) radius = sh / 2;
-                for (int i = 0; i < 360; i++) {
-                    double a = i * Math.PI * 2.0 / 360;
+                for (int i = 0; i < 180; i++) {
+                    double a = i * Math.PI * 2.0 / 180;
                     int x = cx + (int) Math.round(Math.cos(a) * radius);
                     int y = cy + (int) Math.round(Math.sin(a) * radius);
                     dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
@@ -405,4 +373,67 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                }
+
+    private static void updatePlayers(MinecraftClient client) {
+        foundPlayers.clear();
+        if (!playerEspEnabled) return;
+        double maxSq = (double) playerDistance * playerDistance;
+        for (PlayerEntity p : client.world.getPlayers()) {
+            if (p == client.player) continue;
+            if (p.squaredDistanceTo(client.player) <= maxSq) foundPlayers.add(p);
+        }
+    }
+
+    private static void updateItems(MinecraftClient client) {
+        foundItems.clear();
+        if (!itemEspEnabled) return;
+        double maxSq = (double) itemDistance * itemDistance;
+        for (ItemEntity it : client.world.getEntitiesByClass(ItemEntity.class,
+                client.player.getBoundingBox().expand(itemDistance), e -> true)) {
+            if (it.squaredDistanceTo(client.player) <= maxSq) foundItems.add(it);
+        }
+    }
+
+    private static void updateBlocks(MinecraftClient client, BlockPos pp) {
+        foundBlocks.clear();
+        foundChests.clear();
+        foundShulkers.clear();
+        foundBarrels.clear();
+        foundEnderChests.clear();
+        foundBeds.clear();
+
+        boolean needBlocks = espEnabled || chestEspEnabled;
+        if (!needBlocks) return;
+
+        // Радиус скана — только для блоков (НЕ включая playerDistance!)
+        int blockRadius = 0;
+        if (espEnabled) blockRadius = Math.max(blockRadius, oreDistance);
+        if (chestEspEnabled) blockRadius = Math.max(blockRadius, chestDistance);
+        if (blockRadius <= 0) return;
+        if (blockRadius > 32) blockRadius = 32;
+
+        double oreSq = (double) oreDistance * oreDistance;
+        double chestSq = (double) chestDistance * chestDistance;
+
+        Set<Block> oreTargets = espEnabled ? getTargetBlocks() : null;
+
+        for (BlockPos pos : BlockPos.iterate(
+                pp.add(-blockRadius, -blockRadius, -blockRadius),
+                pp.add(blockRadius, blockRadius, blockRadius))) {
+
+            double distSq = pos.getSquaredDistance(pp);
+            BlockState state = client.world.getBlockState(pos);
+            Block b = state.getBlock();
+
+            if (espEnabled && oreTargets.contains(b)) {
+                if (distSq <= oreSq) foundBlocks.add(pos.toImmutable());
+                continue;
+            }
+
+            if (chestEspEnabled && ALL_CHESTS.contains(b)) {
+                if (distSq > chestSq) continue;
+                if (chestType == 1 && !NORMAL_CHESTS.contains(b)) continue;
+                if (chestType == 2 && !SHULKER_CHESTS.contains(b)) continue;
+                if (chestType == 3 && !BARREL_BLOCKS.contains(b)) continue;
+                if (chestType == 4 && !ENDER_CHESTS.contains(b)) continue;
+                if (chestType == 5 && !BED_BLOCKS.contains(b))
