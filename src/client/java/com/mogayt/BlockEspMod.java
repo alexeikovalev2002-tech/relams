@@ -199,6 +199,7 @@ public class BlockEspMod implements ClientModInitializer {
                 "key.mog-mod.open_menu", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H,
                 "category.mog-mod.keys"));
 
+        Config.init();
         ChatBind.register();
         ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
 
@@ -209,6 +210,7 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
+            if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
             tickCounter++;
             if (tickCounter < 10) return;
@@ -312,10 +314,8 @@ public class BlockEspMod implements ClientModInitializer {
                         TrajectoryPredictor.impactNormal, cam, 0.4f);
             }
 
-            // Метки для игроков и предметов
             playerMarkers.clear();
             itemMarkers.clear();
-
             boolean needNames = playerEspEnabled || itemEspEnabled;
             if (needNames && (!foundPlayers.isEmpty() || !foundItems.isEmpty())) {
                 MatrixStack vs = new MatrixStack();
@@ -405,4 +405,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         });
     }
-                                                     }
+                }
