@@ -20,27 +20,32 @@ public class AimMobs {
         if (!enabled || client.player == null || client.world == null) return;
 
         PlayerEntity player = client.player;
+        double maxDistSq = aimDistance * aimDistance;
         Box box = player.getBoundingBox().expand(aimDistance);
 
         LivingEntity target = null;
-        double minDist = Double.MAX_VALUE;
+        double minDistSq = Double.MAX_VALUE;
+
+        double fovCos = Math.cos(Math.toRadians(fovAngle));
+        Vec3d look = player.getRotationVector();
+        Vec3d eyePos = player.getEyePos();
 
         for (LivingEntity living : client.world.getEntitiesByClass(LivingEntity.class, box, e -> e != player)) {
             if (!living.isAlive()) continue;
 
-            double dist = player.distanceTo(living);
-            if (dist > aimDistance) continue;
+            // Squared distance — без sqrt
+            double distSq = player.squaredDistanceTo(living);
+            if (distSq > maxDistSq) continue;
 
-            Vec3d look = player.getRotationVector();
+            // Угол через dot — без acos
             Vec3d toTarget = living.getPos()
                     .add(0, living.getHeight() / 2.0, 0)
-                    .subtract(player.getEyePos())
+                    .subtract(eyePos)
                     .normalize();
-            double dot = Math.max(-1.0, Math.min(1.0, look.dotProduct(toTarget)));
-            double angle = Math.toDegrees(Math.acos(dot));
-            if (angle > fovAngle) continue;
+            double dot = look.dotProduct(toTarget);
+            if (dot < fovCos) continue;
 
-            Vec3d eyePos = player.getEyePos();
+            // Рейкаст только для кандидатов, прошедших дистанцию и угол
             Vec3d targetEye = living.getPos().add(0, living.getHeight() / 2.0, 0);
             BlockHitResult hit = client.world.raycast(new RaycastContext(
                     eyePos, targetEye,
@@ -50,8 +55,8 @@ public class AimMobs {
             ));
             if (hit.getType() == HitResult.Type.BLOCK) continue;
 
-            if (dist < minDist) {
-                minDist = dist;
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
                 target = living;
             }
         }
@@ -59,7 +64,6 @@ public class AimMobs {
         if (target == null) return;
 
         Vec3d targetPos = target.getPos().add(0, target.getHeight() / 2.0, 0);
-        Vec3d eyePos = player.getEyePos();
         double dx = targetPos.x - eyePos.x;
         double dy = targetPos.y - eyePos.y;
         double dz = targetPos.z - eyePos.z;
@@ -84,7 +88,6 @@ public class AimMobs {
         float newYaw = curYaw + yawDiff * factor;
         float newPitch = curPitch + pitchDiff * factor;
 
-        // ВАЖНО: сохраняем старые значения как prev — тогда Minecraft плавно интерполирует
         player.prevYaw = curYaw;
         player.prevPitch = curPitch;
         player.setYaw(newYaw);
