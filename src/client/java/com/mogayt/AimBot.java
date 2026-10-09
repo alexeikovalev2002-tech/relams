@@ -25,8 +25,11 @@ public class AimBot {
         if (client.interactionManager == null) return;
 
         PlayerEntity me = client.player;
-        double maxSq = distance * distance;
 
+        // Атака только при полёте ВНИЗ
+        if (me.getVelocity().y >= 0) return;
+
+        double maxSq = distance * distance;
         PlayerEntity target = null;
         double bestSq = Double.MAX_VALUE;
         for (PlayerEntity p : client.world.getPlayers()) {
@@ -55,7 +58,6 @@ public class AimBot {
         while (yawDiff < -180) yawDiff += 360;
         float pitchDiff = targetPitch - curPitch;
 
-        // Плавный lerp — как в AimMobs
         float factor = (float) (rotateSpeed / 100.0);
         if (factor > 1.0f) factor = 1.0f;
         if (factor < 0.01f) factor = 0.01f;
@@ -63,16 +65,14 @@ public class AimBot {
         float newYaw = curYaw + yawDiff * factor;
         float newPitch = curPitch + pitchDiff * factor;
 
-        me.prevYaw = curYaw;
-        me.prevPitch = curPitch;
+        // НЕ трогаем prevYaw/prevPitch — Minecraft сам интерполирует
         me.setYaw(newYaw);
         me.setPitch(newPitch);
 
-        // Строгая проверка: смотрим ли точно на цель
         Vec3d look = me.getRotationVector();
         Vec3d toTarget = targetEye.subtract(eye).normalize();
         double dot = look.dotProduct(toTarget);
-        if (dot < 0.995) return; // почти идеальное наведение
+        if (dot < 0.998) return;
 
         long now = System.currentTimeMillis();
         if (now - lastAttack < nextDelay) return;
@@ -81,7 +81,6 @@ public class AimBot {
         me.swingHand(Hand.MAIN_HAND);
         lastAttack = now;
 
-        // Генерируем следующую рандомную задержку
         long minMs = (long) (delayMin * 1000);
         long maxMs = (long) (delayMax * 1000);
         if (maxMs <= minMs) maxMs = minMs + 1;
