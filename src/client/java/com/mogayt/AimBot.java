@@ -5,14 +5,19 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.Random;
+
 public class AimBot {
 
     public static boolean enabled = false;
-    public static double delay = 0.5;
+    public static double delayMin = 0.5;
+    public static double delayMax = 1.0;
     public static double distance = 4.5;
-    public static double rotateSpeed = 25.0;
+    public static double rotateSpeed = 8.0;
 
     private static long lastAttack = 0;
+    private static long nextDelay = 500;
+    private static final Random rand = new Random();
 
     public static void tick(MinecraftClient client) {
         if (!enabled || client.player == null || client.world == null) return;
@@ -50,24 +55,36 @@ public class AimBot {
         while (yawDiff < -180) yawDiff += 360;
         float pitchDiff = targetPitch - curPitch;
 
-        float step = (float) rotateSpeed;
-        float yawStep = Math.max(-step, Math.min(step, yawDiff));
-        float pitchStep = Math.max(-step, Math.min(step, pitchDiff));
+        // Плавный lerp — как в AimMobs
+        float factor = (float) (rotateSpeed / 100.0);
+        if (factor > 1.0f) factor = 1.0f;
+        if (factor < 0.01f) factor = 0.01f;
+
+        float newYaw = curYaw + yawDiff * factor;
+        float newPitch = curPitch + pitchDiff * factor;
 
         me.prevYaw = curYaw;
         me.prevPitch = curPitch;
-        me.setYaw(curYaw + yawStep);
-        me.setPitch(curPitch + pitchStep);
+        me.setYaw(newYaw);
+        me.setPitch(newPitch);
 
+        // Строгая проверка: смотрим ли точно на цель
         Vec3d look = me.getRotationVector();
         Vec3d toTarget = targetEye.subtract(eye).normalize();
-        if (look.dotProduct(toTarget) < 0.95) return;
+        double dot = look.dotProduct(toTarget);
+        if (dot < 0.995) return; // почти идеальное наведение
 
         long now = System.currentTimeMillis();
-        if (now - lastAttack < (long)(delay * 1000)) return;
+        if (now - lastAttack < nextDelay) return;
 
         client.interactionManager.attackEntity(me, target);
         me.swingHand(Hand.MAIN_HAND);
         lastAttack = now;
+
+        // Генерируем следующую рандомную задержку
+        long minMs = (long) (delayMin * 1000);
+        long maxMs = (long) (delayMax * 1000);
+        if (maxMs <= minMs) maxMs = minMs + 1;
+        nextDelay = minMs + (long) (rand.nextDouble() * (maxMs - minMs));
     }
 }
