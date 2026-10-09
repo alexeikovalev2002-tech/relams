@@ -176,7 +176,11 @@ public class BlockEspMod implements ClientModInitializer {
         Config.init();
         ChatBind.register();
         EspRenderer.register();
-        ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
+
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            AimMobs.tick(client);
+            AimBot.tick(client);
+        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
@@ -270,4 +274,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         }
     }
-}
+                                                     }
