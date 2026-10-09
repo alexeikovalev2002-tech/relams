@@ -22,11 +22,13 @@ public class ChatBind {
     public static final List<Bind> binds = new ArrayList<>();
 
     public static void register() {
-        // 4 бинда по умолчанию
-        binds.add(new Bind("/warp pvp",  GLFW.GLFW_KEY_R));
-        binds.add(new Bind("/warp mine", GLFW.GLFW_KEY_T));
-        binds.add(new Bind("/rtp",       GLFW.GLFW_KEY_Y));
-        binds.add(new Bind("/spawn",     GLFW.GLFW_KEY_U));
+        // 4 бинда по умолчанию — только если список пуст (не загружен из конфига)
+        if (binds.isEmpty()) {
+            binds.add(new Bind("/warp pvp",  GLFW.GLFW_KEY_R));
+            binds.add(new Bind("/warp mine", GLFW.GLFW_KEY_T));
+            binds.add(new Bind("/rtp",       GLFW.GLFW_KEY_Y));
+            binds.add(new Bind("/spawn",     GLFW.GLFW_KEY_U));
+        }
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.world == null) return;
