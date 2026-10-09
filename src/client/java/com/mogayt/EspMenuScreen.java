@@ -13,6 +13,7 @@ public class EspMenuScreen extends Screen {
     private int itemX, itemY, itemW, itemH;
     private int chatX, chatY, chatW, chatH;
     private int aimX, aimY, aimW, aimH;
+    private int botX, botY, botW, botH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -21,15 +22,16 @@ public class EspMenuScreen extends Screen {
     @Override
     protected void init() {
         int cy = this.height / 2;
-        int w = 200, h = 20;
+        int w = 200, h = 18;
         int x = this.width / 2 - 100;
 
         espX = x; espY = cy - 130; espW = w; espH = h;
-        chestX = x; chestY = cy - 108; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 86; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 64; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 42; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 20; aimW = w; aimH = h;
+        chestX = x; chestY = cy - 110; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 90; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 70; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 50; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 30; aimW = w; aimH = h;
+        botX = x; botY = cy - 10; botW = w; botH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -71,11 +73,18 @@ public class EspMenuScreen extends Screen {
                 }).dimensions(aimX, aimY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"),
+                (button) -> {
+                    AimBot.enabled = !AimBot.enabled;
+                    button.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"));
+                }).dimensions(botX, botY, w, h).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
                 (button) -> {
                     Fullbright.enabled = !Fullbright.enabled;
                     button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
-                }).dimensions(x, cy + 2, w, h).build());
+                }).dimensions(x, cy + 10, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"),
@@ -83,25 +92,25 @@ public class EspMenuScreen extends Screen {
                     Freecam.enabled = !Freecam.enabled;
                     if (Freecam.enabled) Freecam.onEnable();
                     button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
-                }).dimensions(x, cy + 24, w, h).build());
+                }).dimensions(x, cy + 30, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
                 (button) -> {
                     Optimizer.enabled = !Optimizer.enabled;
                     button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
-                }).dimensions(x, cy + 46, w, h).build());
+                }).dimensions(x, cy + 50, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
                 (button) -> {
                     TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
                     button.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"));
-                }).dimensions(x, cy + 68, w, h).build());
+                }).dimensions(x, cy + 70, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
-                (button) -> this.close()).dimensions(x, cy + 98, w, h).build());
+                (button) -> this.close()).dimensions(x, cy + 100, w, h).build());
     }
 
     private String getEspLabel() {
@@ -137,6 +146,10 @@ public class EspMenuScreen extends Screen {
             }
             if (inside(mouseX, mouseY, aimX, aimY, aimW, aimH) && this.client != null) {
                 this.client.setScreen(new AimMobsScreen());
+                return true;
+            }
+            if (inside(mouseX, mouseY, botX, botY, botW, botH) && this.client != null) {
+                this.client.setScreen(new AimBotScreen());
                 return true;
             }
         }
