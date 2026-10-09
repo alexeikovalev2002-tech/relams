@@ -12,6 +12,7 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -37,6 +38,8 @@ public class BlockEspMod implements ClientModInitializer {
     public static int chestDistance = 24;
     public static boolean playerEspEnabled = false;
     public static int playerDistance = 64;
+    public static boolean itemEspEnabled = false;
+    public static int itemDistance = 32;
 
     private static final Set<Block> DIAMOND_BLOCKS = new HashSet<>();
     private static final Set<Block> IRON_BLOCKS = new HashSet<>();
@@ -60,6 +63,8 @@ public class BlockEspMod implements ClientModInitializer {
     private static KeyBinding openMenuKey;
     private static final List<PlayerEntity> foundPlayers = new ArrayList<>();
     private static final List<PlayerMarker> playerMarkers = new ArrayList<>();
+    private static final List<ItemEntity> foundItems = new ArrayList<>();
+    private static final List<ItemMarker> itemMarkers = new ArrayList<>();
     private static final List<BlockPos> foundBlocks = new ArrayList<>();
     private static final List<BlockPos> foundChests = new ArrayList<>();
     private static final List<BlockPos> foundShulkers = new ArrayList<>();
@@ -72,6 +77,11 @@ public class BlockEspMod implements ClientModInitializer {
         int x, y;
         String name;
         float hp, maxHp;
+    }
+
+    private static class ItemMarker {
+        int x, y;
+        String name;
     }
 
     private static final RenderLayer THROUGH_WALLS = RenderLayer.of(
@@ -190,7 +200,6 @@ public class BlockEspMod implements ClientModInitializer {
                 "category.mog-mod.keys"));
 
         ChatBind.register();
-
         ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -211,8 +220,9 @@ public class BlockEspMod implements ClientModInitializer {
             foundEnderChests.clear();
             foundBeds.clear();
             foundPlayers.clear();
+            foundItems.clear();
             BlockPos pp = client.player.getBlockPos();
-            int scan = Math.max(Math.max(oreDistance, chestDistance), playerDistance);
+            int scan = Math.max(Math.max(Math.max(oreDistance, chestDistance), playerDistance), itemDistance);
 
             if (espEnabled) {
                 Set<Block> targets = getTargetBlocks();
@@ -247,6 +257,13 @@ public class BlockEspMod implements ClientModInitializer {
                     if (p.distanceTo(client.player) <= playerDistance) foundPlayers.add(p);
                 }
             }
+
+            if (itemEspEnabled) {
+                for (ItemEntity item : client.world.getEntitiesByClass(ItemEntity.class,
+                        client.player.getBoundingBox().expand(itemDistance), e -> true)) {
+                    if (item.distanceTo(client.player) <= itemDistance) foundItems.add(item);
+                }
+            }
         });
 
         WorldRenderEvents.LAST.register((ctx) -> {
@@ -279,6 +296,15 @@ public class BlockEspMod implements ClientModInitializer {
                             1f, 1f, 0f);
                 }
             }
+            if (itemEspEnabled) {
+                for (ItemEntity it : foundItems) {
+                    Box box = it.getBoundingBox();
+                    RenderHelper.drawBoxRaw(buf, mat,
+                            (float)(box.minX - cam.x), (float)(box.minY - cam.y), (float)(box.minZ - cam.z),
+                            (float)(box.maxX - cam.x), (float)(box.maxY - cam.y), (float)(box.maxZ - cam.z),
+                            0.6f, 1f, 0.6f);
+                }
+            }
 
             TrajectoryPredictor.update(client);
             if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
@@ -286,8 +312,12 @@ public class BlockEspMod implements ClientModInitializer {
                         TrajectoryPredictor.impactNormal, cam, 0.4f);
             }
 
+            // Метки для игроков и предметов
             playerMarkers.clear();
-            if (playerEspEnabled && !foundPlayers.isEmpty()) {
+            itemMarkers.clear();
+
+            boolean needNames = playerEspEnabled || itemEspEnabled;
+            if (needNames && (!foundPlayers.isEmpty() || !foundItems.isEmpty())) {
                 MatrixStack vs = new MatrixStack();
                 vs.multiply(RotationAxis.POSITIVE_X.rotationDegrees(ctx.camera().getPitch()));
                 vs.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ctx.camera().getYaw() + 180f));
@@ -295,24 +325,37 @@ public class BlockEspMod implements ClientModInitializer {
                 Matrix4f pm = new Matrix4f(ctx.projectionMatrix());
                 int sw = client.getWindow().getScaledWidth();
                 int sh = client.getWindow().getScaledHeight();
+
                 for (PlayerEntity p : foundPlayers) {
                     Box box = p.getBoundingBox();
                     float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
                     float py = (float) (box.maxY - cam.y + 0.7);
                     float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
                     Vector4f v = new Vector4f(px, py, pz, 1f);
-                    v.mul(vm);
-                    v.mul(pm);
+                    v.mul(vm); v.mul(pm);
                     if (v.w <= 0.01f) continue;
-                    int sx = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
-                    int sy = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
                     PlayerMarker marker = new PlayerMarker();
-                    marker.x = sx;
-                    marker.y = sy;
+                    marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
+                    marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
                     marker.name = p.getName().getString();
                     marker.hp = p.getHealth();
                     marker.maxHp = p.getMaxHealth();
                     playerMarkers.add(marker);
+                }
+
+                for (ItemEntity it : foundItems) {
+                    Box box = it.getBoundingBox();
+                    float px = (float) ((box.minX + box.maxX) / 2 - cam.x);
+                    float py = (float) (box.maxY - cam.y + 0.5);
+                    float pz = (float) ((box.minZ + box.maxZ) / 2 - cam.z);
+                    Vector4f v = new Vector4f(px, py, pz, 1f);
+                    v.mul(vm); v.mul(pm);
+                    if (v.w <= 0.01f) continue;
+                    ItemMarker marker = new ItemMarker();
+                    marker.x = (int) ((v.x / v.w * 0.5f + 0.5f) * sw);
+                    marker.y = (int) ((0.5f - v.y / v.w * 0.5f) * sh);
+                    marker.name = it.getStack().getName().getString();
+                    itemMarkers.add(marker);
                 }
             }
         });
@@ -330,28 +373,36 @@ public class BlockEspMod implements ClientModInitializer {
                 int radius = (int) (sh * 0.5 * Math.tan(fovRad) / Math.tan(Math.toRadians(70.0)));
                 if (radius < 10) radius = 10;
                 if (radius > sh / 2) radius = sh / 2;
-                int segments = 360;
-                for (int i = 0; i < segments; i++) {
-                    double a = i * Math.PI * 2.0 / segments;
+                for (int i = 0; i < 360; i++) {
+                    double a = i * Math.PI * 2.0 / 360;
                     int x = cx + (int) Math.round(Math.cos(a) * radius);
                     int y = cy + (int) Math.round(Math.sin(a) * radius);
                     dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
                 }
             }
 
-            if (!playerEspEnabled || playerMarkers.isEmpty()) return;
             if (client.textRenderer == null) return;
-            for (PlayerMarker m : playerMarkers) {
-                int nw = client.textRenderer.getWidth(m.name);
-                dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
-                int hpP = (int) ((m.hp / m.maxHp) * 100);
-                int hc = 0xFF00FF00;
-                if (hpP < 60) hc = 0xFFFFFF00;
-                if (hpP < 30) hc = 0xFFFF0000;
-                String ht = String.format("%.0f", m.hp);
-                int hw = client.textRenderer.getWidth(ht);
-                dc.drawTextWithShadow(client.textRenderer, Text.literal(ht), m.x - hw / 2, m.y + 10, hc);
+
+            if (playerEspEnabled) {
+                for (PlayerMarker m : playerMarkers) {
+                    int nw = client.textRenderer.getWidth(m.name);
+                    dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
+                    int hpP = (int) ((m.hp / m.maxHp) * 100);
+                    int hc = 0xFF00FF00;
+                    if (hpP < 60) hc = 0xFFFFFF00;
+                    if (hpP < 30) hc = 0xFFFF0000;
+                    String ht = String.format("%.0f", m.hp);
+                    int hw = client.textRenderer.getWidth(ht);
+                    dc.drawTextWithShadow(client.textRenderer, Text.literal(ht), m.x - hw / 2, m.y + 10, hc);
+                }
+            }
+
+            if (itemEspEnabled) {
+                for (ItemMarker m : itemMarkers) {
+                    int nw = client.textRenderer.getWidth(m.name);
+                    dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
+                }
             }
         });
     }
-                    }
+                                                     }
