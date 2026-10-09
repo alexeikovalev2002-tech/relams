@@ -15,6 +15,8 @@ public class TrajectoryPredictor {
     public static Vec3d impactPoint = null;
     public static Vec3d impactNormal = new Vec3d(0, 1, 0);
 
+    public static final float[] COLOR = {0.2f, 1.0f, 0.2f, 1.0f};
+
     public static void update(MinecraftClient client) {
         impactPoint = null;
         impactNormal = new Vec3d(0, 1, 0);
@@ -58,7 +60,7 @@ public class TrajectoryPredictor {
         double dz = Math.cos(yawRad) * Math.cos(pitchRad);
         Vec3d vel = new Vec3d(dx * velocity, dy * velocity, dz * velocity);
 
-        for (int i = 0; i < 300; i++) {
+        for (int i = 0; i < 150; i++) {
             Vec3d nextPos = pos.add(vel);
 
             BlockHitResult hit = client.world.raycast(new RaycastContext(
