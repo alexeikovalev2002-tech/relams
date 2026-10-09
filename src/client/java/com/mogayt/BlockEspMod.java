@@ -177,10 +177,7 @@ public class BlockEspMod implements ClientModInitializer {
         ChatBind.register();
         EspRenderer.register();
 
-        ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            AimMobs.tick(client);
-            AimBot.tick(client);
-        });
+        ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.wasPressed()) {
@@ -189,6 +186,7 @@ public class BlockEspMod implements ClientModInitializer {
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
+            AimBot.tick(client);
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
 
@@ -274,4 +272,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         }
     }
-                                                     }
+}
