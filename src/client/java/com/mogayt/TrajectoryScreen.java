@@ -24,16 +24,16 @@ public class TrajectoryScreen extends Screen {
                 }
         ).dimensions(this.width / 2 - 100, cy - 70, 200, 20).build());
 
-        TextFieldWidget sizeField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy - 20, 100, 20, Text.literal("Размер"));
-        sizeField.setText(String.valueOf(TrajectoryPredictor.diamondSize));
-        sizeField.setChangedListener(t -> {
+        TextFieldWidget widthField = new TextFieldWidget(this.textRenderer,
+                this.width / 2 - 50, cy - 20, 100, 20, Text.literal("Толщина"));
+        widthField.setText(String.valueOf(TrajectoryPredictor.lineWidth));
+        widthField.setChangedListener(t -> {
             try {
                 float v = Float.parseFloat(t.trim());
-                if (v >= 0.1f && v <= 2.0f) TrajectoryPredictor.diamondSize = v;
+                if (v >= 0.5f && v <= 5.0f) TrajectoryPredictor.lineWidth = v;
             } catch (Exception ignored) {}
         });
-        this.addDrawableChild(sizeField);
+        this.addDrawableChild(widthField);
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TrajectoryPredictor.filled ? "Заполнение: ВКЛ" : "Заполнение: ВЫКЛ"),
@@ -58,7 +58,7 @@ public class TrajectoryScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
         int cy = this.height / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Размер ромба (0.1-2.0)"),
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Толщина линии (0.5-5.0)"),
                 this.width / 2, cy - 32, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Клавиша"),
                 this.width / 2, cy + 58, 0xAAAAAA);
