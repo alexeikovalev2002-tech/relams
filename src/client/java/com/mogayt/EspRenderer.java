@@ -9,6 +9,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
@@ -71,6 +72,27 @@ public class EspRenderer {
                         (float)(b.maxX - cam.x), (float)(b.maxY - cam.y), (float)(b.maxZ - cam.z),
                         0.6f, 1f, 0.6f);
             }
+        }
+
+        // Красный толстый хитбокс по цели, в которую летит снаряд
+        for (HitTracker.Entry entry : HitTracker.hits) {
+            LivingEntity e = entry.entity;
+            if (e == client.player) continue;
+            Box b = e.getBoundingBox();
+            float x1 = (float)(b.minX - cam.x);
+            float y1 = (float)(b.minY - cam.y);
+            float z1 = (float)(b.minZ - cam.z);
+            float x2 = (float)(b.maxX - cam.x);
+            float y2 = (float)(b.maxY - cam.y);
+            float z2 = (float)(b.maxZ - cam.z);
+
+            RenderHelper.drawBoxRaw(buf, mat, x1, y1, z1, x2, y2, z2, 1f, 0f, 0f);
+            RenderHelper.drawBoxRaw(buf, mat,
+                    x1 - 0.015f, y1 - 0.015f, z1 - 0.015f,
+                    x2 + 0.015f, y2 + 0.015f, z2 + 0.015f, 1f, 0f, 0f);
+            RenderHelper.drawBoxRaw(buf, mat,
+                    x1 - 0.03f, y1 - 0.03f, z1 - 0.03f,
+                    x2 + 0.03f, y2 + 0.03f, z2 + 0.03f, 1f, 0f, 0f);
         }
 
         TrajectoryPredictor.update(client);
