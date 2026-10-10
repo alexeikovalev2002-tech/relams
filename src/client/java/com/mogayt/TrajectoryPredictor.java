@@ -12,10 +12,11 @@ import net.minecraft.world.RaycastContext;
 public class TrajectoryPredictor {
 
     public static boolean enabled = false;
+    public static float diamondSize = 0.4f;
+    public static boolean filled = false;
+
     public static Vec3d impactPoint = null;
     public static Vec3d impactNormal = new Vec3d(0, 1, 0);
-
-    public static final float[] COLOR = {0.2f, 1.0f, 0.2f, 1.0f};
 
     public static void update(MinecraftClient client) {
         impactPoint = null;
