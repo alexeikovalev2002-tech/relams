@@ -12,7 +12,7 @@ import net.minecraft.world.RaycastContext;
 public class TrajectoryPredictor {
 
     public static boolean enabled = false;
-    public static float diamondSize = 0.4f;
+    public static float lineWidth = 1.0f;
     public static boolean filled = false;
 
     public static Vec3d impactPoint = null;
@@ -63,24 +63,17 @@ public class TrajectoryPredictor {
 
         for (int i = 0; i < 150; i++) {
             Vec3d nextPos = pos.add(vel);
-
             BlockHitResult hit = client.world.raycast(new RaycastContext(
-                    pos, nextPos,
-                    RaycastContext.ShapeType.COLLIDER,
-                    RaycastContext.FluidHandling.NONE,
-                    player
-            ));
-
+                    pos, nextPos, RaycastContext.ShapeType.COLLIDER,
+                    RaycastContext.FluidHandling.NONE, player));
             if (hit.getType() == HitResult.Type.BLOCK) {
                 impactPoint = hit.getPos();
                 Vec3i side = hit.getSide().getVector();
                 impactNormal = new Vec3d(side.getX(), side.getY(), side.getZ());
                 return;
             }
-
             pos = nextPos;
             vel = new Vec3d(vel.x * drag, vel.y * drag - gravity, vel.z * drag);
-
             if (pos.y < client.world.getBottomY() - 5 || pos.y > 400) return;
         }
     }
