@@ -8,55 +8,51 @@ import net.minecraft.text.Text;
 
 public class PlayerEspScreen extends Screen {
 
-    private TextFieldWidget distanceField;
-
     public PlayerEspScreen() {
         super(Text.literal("Player ESP"));
     }
 
     @Override
     protected void init() {
-        int centerY = this.height / 2 - 30;
+        int cy = this.height / 2;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"),
-                (button) -> {
+                (b) -> {
                     BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"));
+                    b.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, centerY - 40, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 80, 200, 20).build());
 
-        distanceField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, centerY + 10, 100, 20,
-                Text.literal("Дистанция"));
-        distanceField.setText(String.valueOf(BlockEspMod.playerDistance));
-        distanceField.setChangedListener(text -> {
+        TextFieldWidget dist = new TextFieldWidget(this.textRenderer,
+                this.width / 2 - 50, cy - 30, 100, 20, Text.literal("Дистанция"));
+        dist.setText(String.valueOf(BlockEspMod.playerDistance));
+        dist.setChangedListener(text -> {
             try {
-                int val = Integer.parseInt(text.trim());
-                if (val > 0 && val <= 256) {
-                    BlockEspMod.playerDistance = val;
-                }
-            } catch (NumberFormatException ignored) {}
+                int v = Integer.parseInt(text.trim());
+                if (v > 0 && v <= 256) BlockEspMod.playerDistance = v;
+            } catch (Exception ignored) {}
         });
-        this.addDrawableChild(distanceField);
+        this.addDrawableChild(dist);
+
+        this.addDrawableChild(KeyBindHelper.create(this.textRenderer,
+                this.width / 2 - 50, cy + 20, 100, 20,
+                KeyBinds.playerKey, k -> KeyBinds.playerKey = k));
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
-                (button) -> {
-                    if (this.client != null) {
-                        this.client.setScreen(new EspMenuScreen());
-                    }
-                }
-        ).dimensions(this.width / 2 - 100, centerY + 50, 200, 20).build());
+                (b) -> { if (this.client != null) this.client.setScreen(new EspMenuScreen()); }
+        ).dimensions(this.width / 2 - 100, cy + 70, 200, 20).build());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
-        context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("Дистанция PlayerESP (1-256):"),
-                this.width / 2, this.height / 2 - 30 + 10 - 12, 0xAAAAAA);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Дистанция (1-256)"),
+                this.width / 2, this.height / 2 - 42, 0xAAAAAA);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Клавиша"),
+                this.width / 2, this.height / 2 + 8, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
