@@ -27,7 +27,8 @@ public class AimBot {
         PlayerEntity me = client.player;
 
         // Работаем ТОЛЬКО при полёте вниз
-        if (me.fallDistance <= 0.0f) return;
+        if (me.isOnGround()) return;
+        if (me.getVelocity().y >= -0.01) return;
 
         double maxSq = distance * distance;
         PlayerEntity target = null;
