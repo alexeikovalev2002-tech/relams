@@ -38,6 +38,16 @@ public class Config {
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
             w.println("trajectory=" + TrajectoryPredictor.enabled);
+            w.println("k.esp=" + KeyBinds.espKey);
+            w.println("k.chest=" + KeyBinds.chestKey);
+            w.println("k.player=" + KeyBinds.playerKey);
+            w.println("k.item=" + KeyBinds.itemKey);
+            w.println("k.aimMobs=" + KeyBinds.aimMobsKey);
+            w.println("k.aimBot=" + KeyBinds.aimBotKey);
+            w.println("k.fullbright=" + KeyBinds.fullbrightKey);
+            w.println("k.freecam=" + KeyBinds.freecamKey);
+            w.println("k.optimizer=" + KeyBinds.optimizerKey);
+            w.println("k.trajectory=" + KeyBinds.trajectoryKey);
             for (int i = 0; i < ChatBind.binds.size(); i++) {
                 ChatBind.Bind b = ChatBind.binds.get(i);
                 w.println("bind." + i + ".cmd=" + b.command);
@@ -81,6 +91,16 @@ public class Config {
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectory")) TrajectoryPredictor.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("k.esp")) KeyBinds.espKey = Integer.parseInt(v);
+                    else if (k.equals("k.chest")) KeyBinds.chestKey = Integer.parseInt(v);
+                    else if (k.equals("k.player")) KeyBinds.playerKey = Integer.parseInt(v);
+                    else if (k.equals("k.item")) KeyBinds.itemKey = Integer.parseInt(v);
+                    else if (k.equals("k.aimMobs")) KeyBinds.aimMobsKey = Integer.parseInt(v);
+                    else if (k.equals("k.aimBot")) KeyBinds.aimBotKey = Integer.parseInt(v);
+                    else if (k.equals("k.fullbright")) KeyBinds.fullbrightKey = Integer.parseInt(v);
+                    else if (k.equals("k.freecam")) KeyBinds.freecamKey = Integer.parseInt(v);
+                    else if (k.equals("k.optimizer")) KeyBinds.optimizerKey = Integer.parseInt(v);
+                    else if (k.equals("k.trajectory")) KeyBinds.trajectoryKey = Integer.parseInt(v);
                     else if (k.startsWith("bind.")) {
                         String[] p = k.split("\\.");
                         if (p.length == 3) {
@@ -103,4 +123,4 @@ public class Config {
             ChatBind.binds.addAll(loaded);
         }
     }
-}
+                                }
