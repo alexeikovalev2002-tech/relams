@@ -13,7 +13,6 @@ public class TrajectoryPredictor {
 
     public static boolean enabled = false;
     public static float lineWidth = 1.0f;
-    public static boolean filled = false;
 
     public static Vec3d impactPoint = null;
     public static Vec3d impactNormal = new Vec3d(0, 1, 0);
