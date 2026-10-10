@@ -42,6 +42,7 @@ public class EspRenderer {
         VertexConsumerProvider consumers = ctx.consumers();
         if (consumers == null) return;
         VertexConsumer buf = consumers.getBuffer(BlockEspMod.THROUGH_WALLS);
+        VertexConsumer bufFilled = consumers.getBuffer(RenderLayer.getDebugFilledBox());
         Matrix4f mat = matrices.peek().getPositionMatrix();
 
         if (BlockEspMod.espEnabled) {
@@ -75,9 +76,9 @@ public class EspRenderer {
 
         TrajectoryPredictor.update(client);
         if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
-            RenderHelper.drawDiamond(buf, mat, TrajectoryPredictor.impactPoint,
-                    TrajectoryPredictor.impactNormal, cam,
-                    TrajectoryPredictor.diamondSize, TrajectoryPredictor.filled);
+            RenderHelper.drawDiamond(buf, bufFilled, mat,
+                    TrajectoryPredictor.impactPoint, TrajectoryPredictor.impactNormal, cam,
+                    TrajectoryPredictor.lineWidth, TrajectoryPredictor.filled);
         }
 
         pms.clear();
@@ -166,4 +167,4 @@ public class EspRenderer {
             dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
         }
     }
-}
+            }
