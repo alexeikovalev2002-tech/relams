@@ -14,6 +14,10 @@ public class EspMenuScreen extends Screen {
     private int chatX, chatY, chatW, chatH;
     private int aimX, aimY, aimW, aimH;
     private int botX, botY, botW, botH;
+    private int fbX, fbY, fbW, fbH;
+    private int fcX, fcY, fcW, fcH;
+    private int optX, optY, optW, optH;
+    private int trjX, trjY, trjW, trjH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -25,92 +29,77 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 18;
         int x = this.width / 2 - 100;
 
-        espX = x; espY = cy - 130; espW = w; espH = h;
-        chestX = x; chestY = cy - 110; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 90; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 70; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 50; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 30; aimW = w; aimH = h;
-        botX = x; botY = cy - 10; botW = w; botH = h;
+        espX = x; espY = cy - 110; espW = w; espH = h;
+        chestX = x; chestY = cy - 90; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 70; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 50; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 30; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 10; aimW = w; aimH = h;
+        botX = x; botY = cy + 10; botW = w; botH = h;
+        fbX = x; fbY = cy + 30; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 50; fcW = w; fcH = h;
+        optX = x; optY = cy + 70; optW = w; optH = h;
+        trjX = x; trjY = cy + 90; trjW = w; trjH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
-                (button) -> {
-                    BlockEspMod.espEnabled = !BlockEspMod.espEnabled;
-                    button.setMessage(Text.literal(getEspLabel()));
-                }).dimensions(espX, espY, w, h).build());
+                (b) -> { BlockEspMod.espEnabled = !BlockEspMod.espEnabled; b.setMessage(Text.literal(getEspLabel())); }
+        ).dimensions(espX, espY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getChestLabel()),
-                (button) -> {
-                    BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled;
-                    button.setMessage(Text.literal(getChestLabel()));
-                }).dimensions(chestX, chestY, w, h).build());
+                (b) -> { BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled; b.setMessage(Text.literal(getChestLabel())); }
+        ).dimensions(chestX, chestY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"),
-                (button) -> {
-                    BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"));
-                }).dimensions(playerX, playerY, w, h).build());
+                (b) -> { BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled; b.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ")); }
+        ).dimensions(playerX, playerY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ"),
-                (button) -> {
-                    BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled;
-                    button.setMessage(Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ"));
-                }).dimensions(itemX, itemY, w, h).build());
+                (b) -> { BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled; b.setMessage(Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ")); }
+        ).dimensions(itemX, itemY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("ChatBind [" + ChatBind.binds.size() + " шт]"),
-                (button) -> {}).dimensions(chatX, chatY, w, h).build());
+                (b) -> {}
+        ).dimensions(chatX, chatY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ"),
-                (button) -> {
-                    AimMobs.enabled = !AimMobs.enabled;
-                    button.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ"));
-                }).dimensions(aimX, aimY, w, h).build());
+                (b) -> { AimMobs.enabled = !AimMobs.enabled; b.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ")); }
+        ).dimensions(aimX, aimY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"),
-                (button) -> {
-                    AimBot.enabled = !AimBot.enabled;
-                    button.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"));
-                }).dimensions(botX, botY, w, h).build());
+                (b) -> { AimBot.enabled = !AimBot.enabled; b.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ")); }
+        ).dimensions(botX, botY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
-                (button) -> {
-                    Fullbright.enabled = !Fullbright.enabled;
-                    button.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"));
-                }).dimensions(x, cy + 10, w, h).build());
+                (b) -> { Fullbright.enabled = !Fullbright.enabled; b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
+        ).dimensions(fbX, fbY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"),
-                (button) -> {
-                    Freecam.enabled = !Freecam.enabled;
-                    if (Freecam.enabled) Freecam.onEnable();
-                    button.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"));
-                }).dimensions(x, cy + 30, w, h).build());
+                (b) -> { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); b.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ")); }
+        ).dimensions(fcX, fcY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
-                (button) -> {
-                    Optimizer.enabled = !Optimizer.enabled;
-                    button.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"));
-                }).dimensions(x, cy + 50, w, h).build());
+                (b) -> { Optimizer.enabled = !Optimizer.enabled; b.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ")); }
+        ).dimensions(optX, optY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
-                (button) -> {
-                    TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
-                    button.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"));
-                }).dimensions(x, cy + 70, w, h).build());
+                (b) -> { TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled; b.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ")); }
+        ).dimensions(trjX, trjY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
-                (button) -> this.close()).dimensions(x, cy + 100, w, h).build());
+                (b) -> this.close()
+        ).dimensions(x, cy + 118, w, h).build());
     }
 
     private String getEspLabel() {
@@ -122,38 +111,21 @@ public class EspMenuScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double mx, double my, int button) {
         if (button == 1) {
-            if (inside(mouseX, mouseY, espX, espY, espW, espH) && this.client != null) {
-                this.client.setScreen(new OreSelectScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, chestX, chestY, chestW, chestH) && this.client != null) {
-                this.client.setScreen(new ChestSelectScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, playerX, playerY, playerW, playerH) && this.client != null) {
-                this.client.setScreen(new PlayerEspScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, itemX, itemY, itemW, itemH) && this.client != null) {
-                this.client.setScreen(new ItemEspScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, chatX, chatY, chatW, chatH) && this.client != null) {
-                this.client.setScreen(new ChatBindScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, aimX, aimY, aimW, aimH) && this.client != null) {
-                this.client.setScreen(new AimMobsScreen());
-                return true;
-            }
-            if (inside(mouseX, mouseY, botX, botY, botW, botH) && this.client != null) {
-                this.client.setScreen(new AimBotScreen());
-                return true;
-            }
+            if (inside(mx, my, espX, espY, espW, espH)) { if (this.client != null) this.client.setScreen(new OreSelectScreen()); return true; }
+            if (inside(mx, my, chestX, chestY, chestW, chestH)) { if (this.client != null) this.client.setScreen(new ChestSelectScreen()); return true; }
+            if (inside(mx, my, playerX, playerY, playerW, playerH)) { if (this.client != null) this.client.setScreen(new PlayerEspScreen()); return true; }
+            if (inside(mx, my, itemX, itemY, itemW, itemH)) { if (this.client != null) this.client.setScreen(new ItemEspScreen()); return true; }
+            if (inside(mx, my, chatX, chatY, chatW, chatH)) { if (this.client != null) this.client.setScreen(new ChatBindScreen()); return true; }
+            if (inside(mx, my, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
+            if (inside(mx, my, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
+            if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
+            if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
+            if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
+            if (inside(mx, my, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(mx, my, button);
     }
 
     private boolean inside(double mx, double my, int x, int y, int w, int h) {
@@ -163,10 +135,10 @@ public class EspMenuScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 5, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("ПКМ по кнопкам — настройки"),
-                this.width / 2, 24, 0xAAAAAA);
+                this.width / 2, 18, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
