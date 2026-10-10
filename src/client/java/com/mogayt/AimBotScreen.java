@@ -22,10 +22,10 @@ public class AimBotScreen extends Screen {
                     AimBot.enabled = !AimBot.enabled;
                     button.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, cy - 100, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 70, 200, 20).build());
 
         TextFieldWidget delayMinField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 105, cy - 55, 100, 20, Text.literal("Мин"));
+                this.width / 2 - 105, cy - 25, 100, 20, Text.literal("Мин"));
         delayMinField.setText(String.valueOf(AimBot.delayMin));
         delayMinField.setChangedListener(text -> {
             try {
@@ -36,7 +36,7 @@ public class AimBotScreen extends Screen {
         this.addDrawableChild(delayMinField);
 
         TextFieldWidget delayMaxField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 + 5, cy - 55, 100, 20, Text.literal("Макс"));
+                this.width / 2 + 5, cy - 25, 100, 20, Text.literal("Макс"));
         delayMaxField.setText(String.valueOf(AimBot.delayMax));
         delayMaxField.setChangedListener(text -> {
             try {
@@ -47,7 +47,7 @@ public class AimBotScreen extends Screen {
         this.addDrawableChild(delayMaxField);
 
         TextFieldWidget distField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy - 5, 100, 20, Text.literal("Дистанция"));
+                this.width / 2 - 50, cy + 25, 100, 20, Text.literal("Дистанция"));
         distField.setText(String.valueOf(AimBot.distance));
         distField.setChangedListener(text -> {
             try {
@@ -57,23 +57,12 @@ public class AimBotScreen extends Screen {
         });
         this.addDrawableChild(distField);
 
-        TextFieldWidget speedField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy + 45, 100, 20, Text.literal("Скорость"));
-        speedField.setText(String.valueOf(AimBot.rotateSpeed));
-        speedField.setChangedListener(text -> {
-            try {
-                double v = Double.parseDouble(text.trim());
-                if (v >= 1 && v <= 100) AimBot.rotateSpeed = v;
-            } catch (Exception ignored) {}
-        });
-        this.addDrawableChild(speedField);
-
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
                 (button) -> {
                     if (this.client != null) this.client.setScreen(new EspMenuScreen());
                 }
-        ).dimensions(this.width / 2 - 100, cy + 90, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy + 70, 200, 20).build());
     }
 
     @Override
@@ -82,13 +71,10 @@ public class AimBotScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Задержка удара: мин / макс (0.1-5 сек)"),
-                this.width / 2, this.height / 2 - 70, 0xAAAAAA);
+                this.width / 2, this.height / 2 - 40, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Дистанция (1-8 блоков)"),
-                this.width / 2, this.height / 2 - 20, 0xAAAAAA);
-        context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("Скорость поворота (1-100, меньше = плавнее)"),
-                this.width / 2, this.height / 2 + 30, 0xAAAAAA);
+                this.width / 2, this.height / 2 + 10, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
