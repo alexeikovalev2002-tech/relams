@@ -39,7 +39,6 @@ public class Config {
             w.println("optimizer=" + Optimizer.enabled);
             w.println("trajectory=" + TrajectoryPredictor.enabled);
             w.println("trajectoryWidth=" + TrajectoryPredictor.lineWidth);
-            w.println("trajectoryFilled=" + TrajectoryPredictor.filled);
             w.println("cameraNoClip=" + CameraNoClip.enabled);
             w.println("k.esp=" + KeyBinds.espKey);
             w.println("k.chest=" + KeyBinds.chestKey);
@@ -95,7 +94,6 @@ public class Config {
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectory")) TrajectoryPredictor.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectoryWidth")) TrajectoryPredictor.lineWidth = Float.parseFloat(v);
-                    else if (k.equals("trajectoryFilled")) TrajectoryPredictor.filled = Boolean.parseBoolean(v);
                     else if (k.equals("cameraNoClip")) CameraNoClip.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("k.esp")) KeyBinds.espKey = Integer.parseInt(v);
                     else if (k.equals("k.chest")) KeyBinds.chestKey = Integer.parseInt(v);
@@ -129,4 +127,4 @@ public class Config {
             ChatBind.binds.addAll(loaded);
         }
     }
-}
+                        }
