@@ -18,6 +18,7 @@ public class EspMenuScreen extends Screen {
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
     private int trjX, trjY, trjW, trjH;
+    private int fogX, fogY, fogW, fogH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -26,20 +27,21 @@ public class EspMenuScreen extends Screen {
     @Override
     protected void init() {
         int cy = this.height / 2;
-        int w = 200, h = 18;
+        int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
         espX = x; espY = cy - 110; espW = w; espH = h;
-        chestX = x; chestY = cy - 90; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 70; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 50; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 30; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 10; aimW = w; aimH = h;
-        botX = x; botY = cy + 10; botW = w; botH = h;
-        fbX = x; fbY = cy + 30; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 50; fcW = w; fcH = h;
-        optX = x; optY = cy + 70; optW = w; optH = h;
-        trjX = x; trjY = cy + 90; trjW = w; trjH = h;
+        chestX = x; chestY = cy - 92; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 74; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 56; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 38; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 20; aimW = w; aimH = h;
+        botX = x; botY = cy - 2; botW = w; botH = h;
+        fbX = x; fbY = cy + 16; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 34; fcW = w; fcH = h;
+        optX = x; optY = cy + 52; optW = w; optH = h;
+        trjX = x; trjY = cy + 70; trjW = w; trjH = h;
+        fogX = x; fogY = cy + 88; fogW = w; fogH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -97,9 +99,14 @@ public class EspMenuScreen extends Screen {
         ).dimensions(trjX, trjY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(FogRemover.enabled ? "Fog: ВКЛ" : "Fog: ВЫКЛ"),
+                (b) -> { FogRemover.enabled = !FogRemover.enabled; b.setMessage(Text.literal(FogRemover.enabled ? "Fog: ВКЛ" : "Fog: ВЫКЛ")); }
+        ).dimensions(fogX, fogY, w, h).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 118, w, h).build());
+        ).dimensions(x, cy + 112, w, h).build());
     }
 
     private String getEspLabel() {
@@ -124,6 +131,7 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
             if (inside(mx, my, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
+            if (inside(mx, my, fogX, fogY, fogW, fogH)) { if (this.client != null) this.client.setScreen(new FogRemoverScreen()); return true; }
         }
         return super.mouseClicked(mx, my, button);
     }
@@ -146,4 +154,4 @@ public class EspMenuScreen extends Screen {
     public boolean shouldPause() {
         return false;
     }
-}
+            }
