@@ -34,7 +34,6 @@ public class Config {
             w.println("aimBotDelayMin=" + AimBot.delayMin);
             w.println("aimBotDelayMax=" + AimBot.delayMax);
             w.println("aimBotDist=" + AimBot.distance);
-            w.println("aimBotSpeed=" + AimBot.rotateSpeed);
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
@@ -78,7 +77,6 @@ public class Config {
                     else if (k.equals("aimBotDelayMin")) AimBot.delayMin = Double.parseDouble(v);
                     else if (k.equals("aimBotDelayMax")) AimBot.delayMax = Double.parseDouble(v);
                     else if (k.equals("aimBotDist")) AimBot.distance = Double.parseDouble(v);
-                    else if (k.equals("aimBotSpeed")) AimBot.rotateSpeed = Double.parseDouble(v);
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
