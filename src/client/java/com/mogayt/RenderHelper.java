@@ -41,7 +41,7 @@ public class RenderHelper {
         line(b, m, x1, y2, z2, x2, y2, z2, r, g, bl);
     }
 
-    public static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float lineWidth, boolean filled) {
+    public static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float lineWidth) {
         int layers = (int) Math.max(1, Math.round(lineWidth * 2));
         float baseSize = 0.4f;
         float step = 0.03f;
