@@ -43,15 +43,15 @@ public class HitTracker {
             if (pv.lengthSquared() < 0.01) continue;
 
             Vec3d pp = proj.getPos();
-            Vec3d pvNorm = pv.normalize();
+            Vec3d dir = pv.normalize();
+            Vec3d end = pp.add(dir.multiply(12.0));
 
-            Box searchBox = new Box(pp, pp).expand(4.0);
-            for (LivingEntity e : client.world.getEntitiesByClass(LivingEntity.class, searchBox, x -> x != client.player)) {
-                Vec3d toE = e.getPos().add(0, e.getHeight() / 2.0, 0).subtract(pp);
-                double dist = toE.length();
-                if (dist < 0.5) { add(e); continue; }
-                double dot = pvNorm.dotProduct(toE.normalize());
-                if (dot > 0.92) add(e);
+            Box scanBox = new Box(pp, end).expand(1.0);
+            for (LivingEntity e : client.world.getEntitiesByClass(LivingEntity.class, scanBox, x -> x != client.player)) {
+                Box eb = e.getBoundingBox().expand(0.3);
+                if (eb.raycast(pp, end).isPresent()) {
+                    add(e);
+                }
             }
         }
     }
