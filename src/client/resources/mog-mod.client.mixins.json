@@ -5,7 +5,8 @@
 	"client": [
 		"CameraMixin",
 		"ClientPlayerEntityMixin",
-		"RenderOptimizationMixin"
+		"RenderOptimizationMixin",
+		"FogRemoverMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
