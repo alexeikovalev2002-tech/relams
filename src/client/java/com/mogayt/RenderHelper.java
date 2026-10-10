@@ -42,16 +42,16 @@ public class RenderHelper {
     }
 
     public static void drawDiamond(VertexConsumer b, Matrix4f m, Vec3d c, Vec3d n, Vec3d cam, float lineWidth, boolean filled) {
+        int layers = (int) Math.max(1, Math.round(lineWidth * 2));
         float baseSize = 0.4f;
-        int layers = filled ? 4 : (int) Math.max(1, Math.round(lineWidth * 2));
+        float step = 0.03f;
+        Vec3d vp = c.add(n.multiply(0.03));
+        float cx = (float)(vp.x - cam.x);
+        float cy = (float)(vp.y - cam.y);
+        float cz = (float)(vp.z - cam.z);
 
         for (int i = 0; i < layers; i++) {
-            float off = 0.02f + i * 0.02f;
-            float s = filled ? (baseSize * (1.0f - i * 0.2f)) : baseSize;
-            Vec3d vp = c.add(n.multiply(off));
-            float cx = (float)(vp.x - cam.x);
-            float cy = (float)(vp.y - cam.y);
-            float cz = (float)(vp.z - cam.z);
+            float s = baseSize + i * step;
 
             float[] a, b1, d, e;
             if (Math.abs(n.y) > 0.5) {
