@@ -18,6 +18,7 @@ public class EspMenuScreen extends Screen {
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
     private int trjX, trjY, trjW, trjH;
+    private int cncX, cncY, cncW, cncH;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -29,17 +30,18 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 18;
         int x = this.width / 2 - 100;
 
-        espX = x; espY = cy - 110; espW = w; espH = h;
-        chestX = x; chestY = cy - 90; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 70; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 50; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 30; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 10; aimW = w; aimH = h;
-        botX = x; botY = cy + 10; botW = w; botH = h;
-        fbX = x; fbY = cy + 30; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 50; fcW = w; fcH = h;
-        optX = x; optY = cy + 70; optW = w; optH = h;
-        trjX = x; trjY = cy + 90; trjW = w; trjH = h;
+        espX = x; espY = cy - 120; espW = w; espH = h;
+        chestX = x; chestY = cy - 100; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 80; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 60; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 40; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 20; aimW = w; aimH = h;
+        botX = x; botY = cy; botW = w; botH = h;
+        fbX = x; fbY = cy + 20; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 40; fcW = w; fcH = h;
+        optX = x; optY = cy + 60; optW = w; optH = h;
+        trjX = x; trjY = cy + 80; trjW = w; trjH = h;
+        cncX = x; cncY = cy + 100; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -97,9 +99,14 @@ public class EspMenuScreen extends Screen {
         ).dimensions(trjX, trjY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ"),
+                (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
+        ).dimensions(cncX, cncY, w, h).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 112, w, h).build());
+        ).dimensions(x, cy + 125, w, h).build());
     }
 
     private String getEspLabel() {
@@ -124,6 +131,7 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
             if (inside(mx, my, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
+            if (inside(mx, my, cncX, cncY, cncW, cncH)) { if (this.client != null) this.client.setScreen(new CameraNoClipScreen()); return true; }
         }
         return super.mouseClicked(mx, my, button);
     }
