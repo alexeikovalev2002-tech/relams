@@ -5,7 +5,8 @@
 	"client": [
 		"CameraMixin",
 		"ClientPlayerEntityMixin",
-		"RenderOptimizationMixin"
+		"RenderOptimizationMixin",
+		"CameraNoClipMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
