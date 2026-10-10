@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class CameraNoClipMixin {
 
     @Inject(method = "clipToSpace", at = @At("HEAD"), cancellable = true)
-    private void onClipToSpace(double desiredCameraDistance, CallbackInfoReturnable<Double> cir) {
+    private void onClipToSpace(float desiredCameraDistance, CallbackInfoReturnable<Float> cir) {
         if (CameraNoClip.enabled) {
             cir.setReturnValue(desiredCameraDistance);
         }
