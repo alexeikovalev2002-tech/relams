@@ -99,7 +99,7 @@ public class EspRenderer {
         if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
             RenderHelper.drawDiamond(buf, mat,
                     TrajectoryPredictor.impactPoint, TrajectoryPredictor.impactNormal, cam,
-                    TrajectoryPredictor.lineWidth, TrajectoryPredictor.filled);
+                    TrajectoryPredictor.lineWidth);
         }
 
         pms.clear();
