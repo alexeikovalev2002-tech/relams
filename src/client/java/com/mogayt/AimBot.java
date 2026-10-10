@@ -13,7 +13,6 @@ public class AimBot {
     public static double delayMin = 0.5;
     public static double delayMax = 1.0;
     public static double distance = 4.5;
-    public static double rotateSpeed = 8.0;
 
     private static long lastAttack = 0;
     private static long nextDelay = 500;
@@ -26,10 +25,7 @@ public class AimBot {
 
         PlayerEntity me = client.player;
 
-        // Работаем ТОЛЬКО при полёте вниз
-        if (me.isOnGround()) return;
-        if (me.getVelocity().y >= -0.01) return;
-
+        // Находим ближайшего игрока в радиусе
         double maxSq = distance * distance;
         PlayerEntity target = null;
         double bestSq = Double.MAX_VALUE;
@@ -41,6 +37,7 @@ public class AimBot {
         }
         if (target == null) return;
 
+        // МГНОВЕННО ставим камеру на голову цели (без плавности)
         Vec3d targetEye = target.getEyePos();
         Vec3d eye = me.getEyePos();
         double dx = targetEye.x - eye.x;
@@ -51,28 +48,14 @@ public class AimBot {
         float targetYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         float targetPitch = (float) -Math.toDegrees(Math.atan2(dy, horiz));
 
-        float curYaw = me.getYaw();
-        float curPitch = me.getPitch();
+        me.prevYaw = me.getYaw();
+        me.prevPitch = me.getPitch();
+        me.setYaw(targetYaw);
+        me.setPitch(targetPitch);
 
-        float yawDiff = targetYaw - curYaw;
-        while (yawDiff > 180) yawDiff -= 360;
-        while (yawDiff < -180) yawDiff += 360;
-        float pitchDiff = targetPitch - curPitch;
-
-        float factor = (float) (rotateSpeed / 100.0);
-        if (factor > 1.0f) factor = 1.0f;
-        if (factor < 0.01f) factor = 0.01f;
-
-        float newYaw = curYaw + yawDiff * factor;
-        float newPitch = curPitch + pitchDiff * factor;
-
-        me.setYaw(newYaw);
-        me.setPitch(newPitch);
-
-        Vec3d look = me.getRotationVector();
-        Vec3d toTarget = targetEye.subtract(eye).normalize();
-        double dot = look.dotProduct(toTarget);
-        if (dot < 0.998) return;
+        // АТАКА только при падении
+        if (me.isOnGround()) return;
+        if (me.getVelocity().y >= -0.01) return;
 
         long now = System.currentTimeMillis();
         if (now - lastAttack < nextDelay) return;
