@@ -76,7 +76,8 @@ public class EspRenderer {
         TrajectoryPredictor.update(client);
         if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
             RenderHelper.drawDiamond(buf, mat, TrajectoryPredictor.impactPoint,
-                    TrajectoryPredictor.impactNormal, cam, 0.4f);
+                    TrajectoryPredictor.impactNormal, cam,
+                    TrajectoryPredictor.diamondSize, TrajectoryPredictor.filled);
         }
 
         pms.clear();
@@ -165,4 +166,4 @@ public class EspRenderer {
             dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
         }
     }
-                    }
+}
