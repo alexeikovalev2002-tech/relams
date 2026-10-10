@@ -38,6 +38,7 @@ public class Config {
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
             w.println("trajectory=" + TrajectoryPredictor.enabled);
+            w.println("cameraNoClip=" + CameraNoClip.enabled);
             w.println("k.esp=" + KeyBinds.espKey);
             w.println("k.chest=" + KeyBinds.chestKey);
             w.println("k.player=" + KeyBinds.playerKey);
@@ -91,6 +92,7 @@ public class Config {
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectory")) TrajectoryPredictor.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("cameraNoClip")) CameraNoClip.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("k.esp")) KeyBinds.espKey = Integer.parseInt(v);
                     else if (k.equals("k.chest")) KeyBinds.chestKey = Integer.parseInt(v);
                     else if (k.equals("k.player")) KeyBinds.playerKey = Integer.parseInt(v);
