@@ -22,10 +22,10 @@ public class TrajectoryScreen extends Screen {
                     TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
                     b.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, cy - 70, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 60, 200, 20).build());
 
         TextFieldWidget widthField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy - 20, 100, 20, Text.literal("Толщина"));
+                this.width / 2 - 50, cy - 10, 100, 20, Text.literal("Толщина"));
         widthField.setText(String.valueOf(TrajectoryPredictor.lineWidth));
         widthField.setChangedListener(t -> {
             try {
@@ -35,22 +35,14 @@ public class TrajectoryScreen extends Screen {
         });
         this.addDrawableChild(widthField);
 
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(TrajectoryPredictor.filled ? "Заполнение: ВКЛ" : "Заполнение: ВЫКЛ"),
-                (b) -> {
-                    TrajectoryPredictor.filled = !TrajectoryPredictor.filled;
-                    b.setMessage(Text.literal(TrajectoryPredictor.filled ? "Заполнение: ВКЛ" : "Заполнение: ВЫКЛ"));
-                }
-        ).dimensions(this.width / 2 - 100, cy + 30, 200, 20).build());
-
         this.addDrawableChild(KeyBindHelper.create(this.textRenderer,
-                this.width / 2 - 50, cy + 70, 100, 20,
+                this.width / 2 - 50, cy + 35, 100, 20,
                 KeyBinds.trajectoryKey, k -> KeyBinds.trajectoryKey = k));
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
                 (b) -> { if (this.client != null) this.client.setScreen(new EspMenuScreen()); }
-        ).dimensions(this.width / 2 - 100, cy + 110, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy + 75, 200, 20).build());
     }
 
     @Override
@@ -59,9 +51,9 @@ public class TrajectoryScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
         int cy = this.height / 2;
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Толщина линии (0.5-5.0)"),
-                this.width / 2, cy - 32, 0xAAAAAA);
+                this.width / 2, cy - 22, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Клавиша"),
-                this.width / 2, cy + 58, 0xAAAAAA);
+                this.width / 2, cy + 23, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
 
