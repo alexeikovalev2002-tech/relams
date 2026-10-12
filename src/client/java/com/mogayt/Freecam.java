@@ -1,28 +1,25 @@
 package com.mogayt;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 
 public class Freecam {
 
     public static boolean enabled = false;
 
-    // Текущая позиция (обновляется раз в тик)
-    public static float camYaw;
-    public static float camPitch;
-    // Предыдущая позиция (для плавной интерполяции в рендере)
+    // Текущая позиция камеры
+    public static double camX, camY, camZ;
+    public static float camYaw, camPitch;
+
+    // Предыдущая позиция — для интерполяции
     public static double prevCamX, prevCamY, prevCamZ;
     public static float prevCamYaw, prevCamPitch;
 
     private static final double SPEED = 1.0;
 
-    public static void register() {
-        ClientTickEvents.END_CLIENT_TICK.register(Freecam::tick);
-    }
-
     public static void onEnable() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
+
         camX = prevCamX = client.player.getX();
         camY = prevCamY = client.player.getY() + client.player.getStandingEyeHeight();
         camZ = prevCamZ = client.player.getZ();
@@ -33,7 +30,7 @@ public class Freecam {
     public static void tick(MinecraftClient client) {
         if (!enabled || client.player == null) return;
 
-        // Сохраняем текущее как предыдущее — для интерполяции
+        // Сохраняем текущее как предыдущее
         prevCamX = camX;
         prevCamY = camY;
         prevCamZ = camZ;
@@ -52,8 +49,6 @@ public class Freecam {
         camPitch = client.player.getPitch();
 
         double yawRad = Math.toRadians(camYaw);
-
-        // ИСПРАВЛЕНО: знак у strafe. Влево/вправо теперь не инвертированы.
         double dx = (-Math.sin(yawRad) * forward - Math.cos(yawRad) * strafe) * SPEED;
         double dz = ( Math.cos(yawRad) * forward - Math.sin(yawRad) * strafe) * SPEED;
         double dy = up * SPEED;
