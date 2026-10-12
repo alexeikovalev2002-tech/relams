@@ -54,6 +54,11 @@ public class Freecam {
         camY += dy;
         camZ += dz;
 
-        // НЕ трогаем игрока — он стоит на месте
+        // Тело и голова крутятся вместе с камерой — руки в первом лице крутятся правильно
+        client.player.setYaw(camYaw);
+        client.player.setPitch(camPitch);
+        client.player.headYaw = camYaw;
+        client.player.bodyYaw = camYaw;
+        client.player.prevHeadYaw = camYaw;
     }
 }
