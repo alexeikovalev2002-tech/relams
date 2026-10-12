@@ -42,7 +42,6 @@ public class Freecam {
         if (client.options.jumpKey.isPressed()) up += 1;
         if (client.options.sneakKey.isPressed()) up -= 1;
 
-        // Поворот берём из игрока — его меняет мышь
         camYaw = client.player.getYaw();
         camPitch = client.player.getPitch();
 
@@ -55,12 +54,6 @@ public class Freecam {
         camY += dy;
         camZ += dz;
 
-        // СИНХРОНИЗАЦИЯ: тело и голова смотрят туда же, куда камера
-        // Так рука в первом лице остаётся на месте
-        client.player.setYaw(camYaw);
-        client.player.setPitch(camPitch);
-        client.player.headYaw = camYaw;
-        client.player.bodyYaw = camYaw;
-        client.player.prevHeadYaw = camYaw;
+        // НЕ трогаем игрока — он стоит на месте
     }
 }
