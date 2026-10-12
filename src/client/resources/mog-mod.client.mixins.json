@@ -7,7 +7,7 @@
 		"ClientPlayerEntityMixin",
 		"RenderOptimizationMixin",
 		"CameraNoClipMixin",
-		"HandRotationMixin"
+		"HandFixMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
