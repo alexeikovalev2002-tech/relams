@@ -8,9 +8,8 @@ public class Freecam {
     public static boolean enabled = false;
 
     // Текущая позиция (обновляется раз в тик)
-    public static double camX, camY, camZ;
-    public static float camYaw, camPitch;
-
+    public static float camYaw;
+    public static float camPitch;
     // Предыдущая позиция (для плавной интерполяции в рендере)
     public static double prevCamX, prevCamY, prevCamZ;
     public static float prevCamYaw, prevCamPitch;
