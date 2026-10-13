@@ -27,7 +27,7 @@ public class EspMenuScreen extends Screen {
             0xFF8728AA, 0xFF00A023, 0xFF915A9B, 0xFFAA5F28
     };
 
-    // Типы модулей — чтобы знать, что делать при клике
+    // ID модулей — что делать при клике
     private static final int MOD_ESP = 0;
     private static final int MOD_CHEST = 1;
     private static final int MOD_PLAYER = 2;
@@ -62,10 +62,10 @@ public class EspMenuScreen extends Screen {
     private int scrollMax = 0;
 
     public EspMenuScreen() {
-        super(Text.literal("Mog Mod Menu"));
+        super(Text.literal("Mog Menu"));
 
         renderLeft.add(new Module("ESP", "Подсветка руды", MOD_ESP));
-        renderLeft.add(new Module("ChestESP", "Подсветка контейнеров", MOD_CHEST));
+        renderLeft.add(new Module("ChestESP", "Сундуки, шалкеры, бочки", MOD_CHEST));
         renderLeft.add(new Module("PlayerESP", "Подсветка игроков", MOD_PLAYER));
         renderLeft.add(new Module("ItemESP", "Подсветка предметов", MOD_ITEM));
 
@@ -146,77 +146,72 @@ public class EspMenuScreen extends Screen {
         }
     }
 
-    // ==== РЕНДЕР ====
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, OUTSIDE);
 
-        // Часы сверху
-        int clockW = 116;
+        int clockW = 92;
         int clockX = (width - clockW) / 2;
-        rounded(context, clockX, 7, clockW, 30, 0xFF080808);
-        text(context, "Mog Menu", clockX + 22, 15, TEXT);
+        rounded(context, clockX, 3, clockW, 24, 0xFF080808);
+        centeredText(context, "Mog Menu", clockX, 10, clockW, TEXT);
 
-        // Палитра
-        int paletteX = Math.max(12, (width - Math.min(width - 24, 840)) / 2);
-        int paletteW = Math.min(width - 24, 840);
-        rounded(context, paletteX, 52, paletteW, 54, 0xFF101010);
+        int paletteX = Math.max(8, (width - Math.min(width - 16, 690)) / 2);
+        int paletteW = Math.min(width - 16, 690);
+        rounded(context, paletteX, 34, paletteW, 42, 0xFF101010);
 
-        text(context, "☼", paletteX + 17, 69, TEXT);
-        int dotsStart = paletteX + 70;
-        int usable = Math.max(30, paletteW - 160);
-        int step = Math.max(30, Math.min(45, usable / palette.length));
+        text(context, "☼", paletteX + 12, 47, TEXT);
+        int dotsStart = paletteX + 48;
+        int usable = Math.max(20, paletteW - 115);
+        int step = Math.max(24, Math.min(34, usable / palette.length));
 
         for (int i = 0; i < palette.length; i++) {
             int cx = dotsStart + i * step;
-            if (cx + 13 < paletteX + paletteW - 65) {
-                context.fill(cx - 1, 68, cx + 27, 96, 0xFF080808);
-                context.fill(cx, 69, cx + 26, 95, palette[i]);
+            if (cx + 18 < paletteX + paletteW - 45) {
+                rounded(context, cx - 1, 44, 20, 20, 0xFF080808);
+                rounded(context, cx, 45, 18, 18, palette[i]);
                 if (selectedColor == palette[i]) {
-                    context.fill(cx - 2, 67, cx + 28, 68, TEXT);
+                    context.fill(cx - 1, 43, cx + 19, 44, TEXT);
                 }
             }
         }
-        text(context, "<  >", paletteX + paletteW - 48, 70, TEXT);
+        text(context, "<  >", paletteX + paletteW - 36, 48, TEXT);
 
-        // Панель
-        panelW = Math.min(840, width - 40);
-        panelH = Math.min(420, height - 155);
+        panelW = Math.min(690, width - 28);
+        panelH = Math.min(330, height - 105);
         panelX = (width - panelW) / 2;
-        panelY = 120;
+        panelY = 86;
+        if (panelH < 190) panelH = Math.max(160, height - panelY - 24);
 
         rounded(context, panelX - 5, panelY - 5, panelW + 10, panelH + 10, 0x33303030);
         rounded(context, panelX, panelY, panelW, panelH, BG);
 
-        // Табы
-        int tabY = panelY + 20;
-        int tabW = 88;
-        int gap = 22;
+        int tabY = panelY + 12;
+        int tabW = 74;
+        int gap = 14;
         int totalTabsW = tabW * 3 + gap * 2;
         int tabX = panelX + (panelW - totalTabsW) / 2;
 
         for (int i = 0; i < tabs.length; i++) {
             int x = tabX + i * (tabW + gap);
             if (i == selectedTab) {
-                rounded(context, x, tabY, tabW, 36, 0xFF666666);
+                rounded(context, x, tabY, tabW, 30, 0xFF666666);
             }
-            centeredText(context, tabs[i], x, tabY + 10, tabW, TEXT);
+            centeredText(context, tabs[i], x, tabY + 8, tabW, TEXT);
         }
 
-        // Карточки
-        int listTop = panelY + 76;
-        int listBottom = panelY + panelH - 15;
+        int listTop = panelY + 53;
+        int listBottom = panelY + panelH - 10;
         int listHeight = listBottom - listTop;
-        int colGap = 12;
-        int colW = (panelW - 60 - colGap) / 2;
-        int leftX = panelX + 30;
+        int colGap = 10;
+        int colW = (panelW - 48 - colGap) / 2;
+        int leftX = panelX + 24;
         int rightX = leftX + colW + colGap;
 
         List<Module> left = currentLeft();
         List<Module> right = currentRight();
         int rows = Math.max(left.size(), right.size());
-        int cardH = 48;
-        int rowGap = 12;
+        int cardH = 40;
+        int rowGap = 8;
         scrollMax = Math.max(0, rows * (cardH + rowGap) - rowGap - listHeight);
 
         context.enableScissor(panelX + 12, listTop, panelX + panelW - 12, listBottom);
@@ -230,7 +225,6 @@ public class EspMenuScreen extends Screen {
         }
         context.disableScissor();
 
-        // Скроллбар
         if (scrollMax > 0) {
             int barX = panelX + panelW - 11;
             int barY = listTop;
@@ -241,8 +235,8 @@ public class EspMenuScreen extends Screen {
             rounded(context, barX, thumbY, 4, thumbH, 0xFFBDBDBD);
         }
 
-        String footer = "ЛКМ — вкл/выкл    ПКМ по модулю — настройки";
-        centeredText(context, footer, 0, panelY + panelH + 20, width, TEXT);
+        String footer = "ЛКМ - вкл/выкл     ПКМ - настройки";
+        centeredText(context, footer, 0, Math.min(height - 12, panelY + panelH + 8), width, TEXT);
 
         super.render(context, mouseX, mouseY, delta);
     }
@@ -250,22 +244,22 @@ public class EspMenuScreen extends Screen {
     private void drawModule(DrawContext context, Module module, int x, int y, int w, int h) {
         rounded(context, x, y, w, h, CARD);
 
-        int labelY = module.description.isEmpty() ? y + 18 : y + 10;
-        text(context, module.name, x + 16, labelY, TEXT);
+        int labelY = module.description.isEmpty() ? y + 14 : y + 7;
+        text(context, module.name, x + 12, labelY, TEXT);
 
         if (!module.description.isEmpty()) {
-            text(context, module.description, x + 16, y + 29, MUTED);
+            text(context, module.description, x + 12, y + 24, MUTED);
         }
 
-        int sw = 42;
-        int sh = 20;
+        int sw = 36;
+        int sh = 17;
         int sx = x + w - sw - 12;
         int sy = y + (h - sh) / 2;
         rounded(context, sx, sy, sw, sh, isOn(module.id) ? selectedColor : 0xFF191919);
 
-        int knob = 14;
+        int knob = 11;
         int kx = isOn(module.id) ? sx + sw - knob - 3 : sx + 3;
-        context.fill(kx, sy + 3, kx + knob, sy + 3 + knob, 0xFFFFFFFF);
+        rounded(context, kx, sy + 3, knob, knob, 0xFFFFFFFF);
     }
 
     private List<Module> currentLeft() {
@@ -276,50 +270,49 @@ public class EspMenuScreen extends Screen {
         return selectedTab == 0 ? renderRight : selectedTab == 1 ? hudRight : utilityRight;
     }
 
-    // ==== КЛИКИ ====
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            int paletteX = Math.max(12, (width - Math.min(width - 24, 840)) / 2);
-            int paletteW = Math.min(width - 24, 840);
-            int dotsStart = paletteX + 70;
-            int usable = Math.max(30, paletteW - 160);
-            int step = Math.max(30, Math.min(45, usable / palette.length));
+            int paletteX = Math.max(8, (width - Math.min(width - 16, 690)) / 2);
+            int paletteW = Math.min(width - 16, 690);
+            int dotsStart = paletteX + 48;
+            int usable = Math.max(20, paletteW - 115);
+            int step = Math.max(24, Math.min(34, usable / palette.length));
 
             for (int i = 0; i < palette.length; i++) {
                 int x = dotsStart + i * step;
-                if (x + 13 < paletteX + paletteW - 65 &&
-                        mouseX >= x - 2 && mouseX <= x + 28 &&
-                        mouseY >= 67 && mouseY <= 96) {
+                if (x + 18 < paletteX + paletteW - 45 &&
+                        mouseX >= x - 2 && mouseX <= x + 20 &&
+                        mouseY >= 43 && mouseY <= 65) {
                     selectedColor = palette[i];
                     return true;
                 }
             }
 
-            int tabW = 88;
-            int gap = 22;
+            int tabW = 74;
+            int gap = 14;
             int totalTabsW = tabW * 3 + gap * 2;
             int tabX = panelX + (panelW - totalTabsW) / 2;
-            int tabY = panelY + 20;
+            int tabY = panelY + 12;
 
             for (int i = 0; i < tabs.length; i++) {
                 int x = tabX + i * (tabW + gap);
                 if (mouseX >= x && mouseX <= x + tabW &&
-                        mouseY >= tabY && mouseY <= tabY + 36) {
+                        mouseY >= tabY && mouseY <= tabY + 30) {
                     selectedTab = i;
                     scroll = 0;
                     return true;
                 }
             }
 
-            int listTop = panelY + 76;
-            int listBottom = panelY + panelH - 15;
-            int colGap = 12;
-            int colW = (panelW - 60 - colGap) / 2;
-            int leftX = panelX + 30;
+            int listTop = panelY + 53;
+            int listBottom = panelY + panelH - 10;
+            int colGap = 10;
+            int colW = (panelW - 48 - colGap) / 2;
+            int leftX = panelX + 24;
             int rightX = leftX + colW + colGap;
-            int cardH = 48;
-            int rowGap = 12;
+            int cardH = 40;
+            int rowGap = 8;
 
             if (mouseY >= listTop && mouseY < listBottom) {
                 Module clicked = findClicked(currentLeft(), mouseX, mouseY, leftX, colW, listTop, cardH, rowGap);
@@ -334,14 +327,14 @@ public class EspMenuScreen extends Screen {
         }
 
         if (button == 1) {
-            int listTop = panelY + 76;
-            int listBottom = panelY + panelH - 15;
-            int colGap = 12;
-            int colW = (panelW - 60 - colGap) / 2;
-            int leftX = panelX + 30;
+            int listTop = panelY + 53;
+            int listBottom = panelY + panelH - 10;
+            int colGap = 10;
+            int colW = (panelW - 48 - colGap) / 2;
+            int leftX = panelX + 24;
             int rightX = leftX + colW + colGap;
-            int cardH = 48;
-            int rowGap = 12;
+            int cardH = 40;
+            int rowGap = 8;
 
             if (mouseY >= listTop && mouseY < listBottom) {
                 Module clicked = findClicked(currentLeft(), mouseX, mouseY, leftX, colW, listTop, cardH, rowGap);
@@ -399,9 +392,13 @@ public class EspMenuScreen extends Screen {
     }
 
     private void rounded(DrawContext context, int x, int y, int w, int h, int color) {
-        int r = Math.min(8, Math.min(w / 2, h / 2));
-        context.fill(x + r, y, x + w - r, y + h, color);
-        context.fill(x, y + r, x + w, y + h - r, color);
-        context.fill(x + 2, y + 1, x + w - 2, y + h - 1, color);
+        if (w <= 0 || h <= 0) return;
+        int r = Math.min(7, Math.min(w / 2, h / 2));
+        for (int row = 0; row < h; row++) {
+            double dy = row < r ? r - row - 0.5
+                    : row >= h - r ? row - (h - r) + 0.5 : 0;
+            int inset = dy == 0 ? 0 : Math.max(0, r - (int) Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy))));
+            context.fill(x + inset, y + row, x + w - inset, y + row + 1, color);
+        }
     }
-                                             }
+                                                    }
