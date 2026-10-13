@@ -14,6 +14,7 @@ public class EspMenuScreen extends Screen {
     private int chatX, chatY, chatW, chatH;
     private int aimX, aimY, aimW, aimH;
     private int botX, botY, botW, botH;
+    private int totemX, totemY, totemW, totemH;
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
@@ -27,21 +28,22 @@ public class EspMenuScreen extends Screen {
     @Override
     protected void init() {
         int cy = this.height / 2;
-        int w = 200, h = 18;
+        int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
-        espX = x; espY = cy - 120; espW = w; espH = h;
-        chestX = x; chestY = cy - 100; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 80; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 60; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 40; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 20; aimW = w; aimH = h;
-        botX = x; botY = cy; botW = w; botH = h;
-        fbX = x; fbY = cy + 20; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 40; fcW = w; fcH = h;
-        optX = x; optY = cy + 60; optW = w; optH = h;
-        trjX = x; trjY = cy + 80; trjW = w; trjH = h;
-        cncX = x; cncY = cy + 100; cncW = w; cncH = h;
+        espX = x; espY = cy - 130; espW = w; espH = h;
+        chestX = x; chestY = cy - 112; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 94; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 76; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 58; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 40; aimW = w; aimH = h;
+        botX = x; botY = cy - 22; botW = w; botH = h;
+        totemX = x; totemY = cy - 4; totemW = w; totemH = h;
+        fbX = x; fbY = cy + 14; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 32; fcW = w; fcH = h;
+        optX = x; optY = cy + 50; optW = w; optH = h;
+        trjX = x; trjY = cy + 68; trjW = w; trjH = h;
+        cncX = x; cncY = cy + 86; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -79,6 +81,11 @@ public class EspMenuScreen extends Screen {
         ).dimensions(botX, botY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ"),
+                (b) -> { AutoTotem.enabled = !AutoTotem.enabled; b.setMessage(Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ")); }
+        ).dimensions(totemX, totemY, w, h).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
                 (b) -> { Fullbright.enabled = !Fullbright.enabled; b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
         ).dimensions(fbX, fbY, w, h).build());
@@ -106,7 +113,7 @@ public class EspMenuScreen extends Screen {
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 125, w, h).build());
+        ).dimensions(x, cy + 110, w, h).build());
     }
 
     private String getEspLabel() {
@@ -127,6 +134,7 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, chatX, chatY, chatW, chatH)) { if (this.client != null) this.client.setScreen(new ChatBindScreen()); return true; }
             if (inside(mx, my, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
             if (inside(mx, my, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
+            if (inside(mx, my, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
             if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
@@ -154,4 +162,4 @@ public class EspMenuScreen extends Screen {
     public boolean shouldPause() {
         return false;
     }
-}
+                       }
