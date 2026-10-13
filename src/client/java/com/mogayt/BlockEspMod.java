@@ -189,6 +189,7 @@ public class BlockEspMod implements ClientModInitializer {
             AimBot.tick(client);
             KeyBinds.tick(client);
             HitTracker.update(client);
+            AutoTotem.tick(client);
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
 
