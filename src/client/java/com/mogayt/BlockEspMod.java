@@ -180,9 +180,15 @@ public class BlockEspMod implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(AimMobs::tick);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // Открытие/закрытие меню по H (toggle)
             while (openMenuKey.wasPressed()) {
-                if (client.currentScreen == null) client.setScreen(new EspMenuScreen());
+                if (client.currentScreen instanceof EspMenuScreen) {
+                    client.setScreen(null);
+                } else if (client.currentScreen == null) {
+                    client.setScreen(new EspMenuScreen());
+                }
             }
+
             Fullbright.tick();
             Optimizer.tick();
             Freecam.tick(client);
@@ -190,7 +196,12 @@ public class BlockEspMod implements ClientModInitializer {
             KeyBinds.tick(client);
             HitTracker.update(client);
             AutoTotem.tick(client);
-            if (client.player != null && client.player.age % 200 == 0) Config.save();
+
+            // Автосохранение конфига раз в 10 секунд в фоне
+            if (client.player != null && client.player.age % 200 == 0) {
+                new Thread(Config::save, "mog-config-save").start();
+            }
+
             if (client.world == null || client.player == null) return;
 
             updatePlayers(client);
@@ -201,7 +212,7 @@ public class BlockEspMod implements ClientModInitializer {
             tickCounter = 0;
 
             BlockPos pp = client.player.getBlockPos();
-            if (lastScanPos != null && lastScanPos.getSquaredDistance(pp) < 16) return;
+            if (lastScanPos != null && lastScanPos.getSquaredDistance(pp) < 4) return;
             lastScanPos = pp;
             updateBlocks(client, pp);
         });
