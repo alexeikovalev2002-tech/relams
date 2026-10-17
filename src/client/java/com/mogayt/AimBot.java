@@ -33,8 +33,7 @@ public class AimBot {
         // Yaw (только по оси X — право/лево)
         float targetYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
 
-        me.prevYaw = me.getYaw();
+        // ВАЖНО: убрали me.prevYaw = me.getYaw(); — из-за этого были дёрганья
         me.setYaw(targetYaw);
-        // Pitch (ось Y — вверх/вниз) НЕ ТРОГАЕМ
     }
 }
