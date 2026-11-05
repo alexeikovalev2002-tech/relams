@@ -156,7 +156,16 @@ public class EspRenderer {
         if (client.getWindow() == null) return;
         int sw = client.getWindow().getScaledWidth();
         int sh = client.getWindow().getScaledHeight();
-
+// Уведомления в левом верхнем углу
+Notification.tick();
+if (!Notification.entries.isEmpty() && client.textRenderer != null) {
+    int ny = 5;
+    for (Notification.Entry e : Notification.entries) {
+        dc.drawTextWithShadow(client.textRenderer, Text.literal(e.text), 5, ny, 0xFFFFFFFF);
+        ny += 10;
+    }
+}
+        
         if (AimMobs.enabled) {
             int cx = sw / 2, cy = sh / 2;
             int radius = (int) (sh * 0.5 * Math.tan(Math.toRadians(AimMobs.fovAngle)) / Math.tan(Math.toRadians(70.0)));
