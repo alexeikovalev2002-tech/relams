@@ -151,108 +151,51 @@ public class EspRenderer {
     }
 
     private static void renderHud(DrawContext dc, RenderTickCounter td) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.getWindow() == null) return;
-        int sw = client.getWindow().getScaledWidth();
-        int sh = client.getWindow().getScaledHeight();
+    MinecraftClient client = MinecraftClient.getInstance();
+    if (client.getWindow() == null) return;
+    int sw = client.getWindow().getScaledWidth();
+    int sh = client.getWindow().getScaledHeight();
 
-        // ===== HUD СПИСОК ВСЕХ ФУНКЦИЙ (постоянно) =====
-        if (client.textRenderer != null) {
-            int x = 2;
-            int y = 5;
-            int lineH = 10;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("ESP [" + BlockEspMod.getOreName() + "]: " + (BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, BlockEspMod.espEnabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("ChestESP [" + BlockEspMod.getChestName() + "]: " + (BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, BlockEspMod.chestEspEnabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("PlayerESP: " + (BlockEspMod.playerEspEnabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, BlockEspMod.playerEspEnabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("ItemESP: " + (BlockEspMod.itemEspEnabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, BlockEspMod.itemEspEnabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("AimMobs: " + (AimMobs.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, AimMobs.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("AimBot: " + (AimBot.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, AimBot.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("AutoTotem: " + (AutoTotem.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, AutoTotem.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fullbright: " + (Fullbright.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, Fullbright.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Freecam: " + (Freecam.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, Freecam.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Fix Lag: " + (Optimizer.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, Optimizer.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("Trajectory: " + (TrajectoryPredictor.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, TrajectoryPredictor.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-
-            dc.drawTextWithShadow(client.textRenderer,
-                    Text.literal("CameraNoClip: " + (CameraNoClip.enabled ? "ВКЛ" : "ВЫКЛ")),
-                    x, y, CameraNoClip.enabled ? 0xFF00FF00 : 0xFF808080);
-            y += lineH;
-        }
-
-        // ===== Круг AimMobs =====
-        if (AimMobs.enabled) {
-            int cx = sw / 2, cy = sh / 2;
-            int radius = (int) (sh * 0.5 * Math.tan(Math.toRadians(AimMobs.fovAngle)) / Math.tan(Math.toRadians(70.0)));
-            if (radius < 10) radius = 10;
-            if (radius > sh / 2) radius = sh / 2;
-            for (int i = 0; i < 180; i++) {
-                double a = i * Math.PI * 2.0 / 180;
-                int x = cx + (int) Math.round(Math.cos(a) * radius);
-                int y = cy + (int) Math.round(Math.sin(a) * radius);
-                dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
-            }
-        }
-
-        if (client.textRenderer == null) return;
-
-        for (PM m : pms) {
-            int nw = client.textRenderer.getWidth(m.name);
-            dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
-            int hpP = (int) ((m.hp / m.maxHp) * 100);
-            int hc = 0xFF00FF00;
-            if (hpP < 60) hc = 0xFFFFFF00;
-            if (hpP < 30) hc = 0xFFFF0000;
-            String ht = String.format("%.0f", m.hp);
-            int hw = client.textRenderer.getWidth(ht);
-            dc.drawTextWithShadow(client.textRenderer, Text.literal(ht), m.x - hw / 2, m.y + 10, hc);
-        }
-        for (IM m : ims) {
-            int nw = client.textRenderer.getWidth(m.name);
-            dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
+    // ===== ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ (1 секунда) =====
+    Notification.tick();
+    if (!Notification.entries.isEmpty() && client.textRenderer != null) {
+        int nx = 0;   // X = 0
+        int ny = 5;   // Y = 5 (если хочешь -5, поставь -5, но текст уйдёт за экран)
+        for (Notification.Entry e : Notification.entries) {
+            dc.drawTextWithShadow(client.textRenderer, Text.literal(e.text), nx, ny, 0xFFFFFFFF);
+            ny += 10;
         }
     }
-}
+
+    // ===== Круг AimMobs =====
+    if (AimMobs.enabled) {
+        int cx = sw / 2, cy = sh / 2;
+        int radius = (int) (sh * 0.5 * Math.tan(Math.toRadians(AimMobs.fovAngle)) / Math.tan(Math.toRadians(70.0)));
+        if (radius < 10) radius = 10;
+        if (radius > sh / 2) radius = sh / 2;
+        for (int i = 0; i < 180; i++) {
+            double a = i * Math.PI * 2.0 / 180;
+            int x = cx + (int) Math.round(Math.cos(a) * radius);
+            int y = cy + (int) Math.round(Math.sin(a) * radius);
+            dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
+        }
+    }
+
+    if (client.textRenderer == null) return;
+
+    for (PM m : pms) {
+        int nw = client.textRenderer.getWidth(m.name);
+        dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
+        int hpP = (int) ((m.hp / m.maxHp) * 100);
+        int hc = 0xFF00FF00;
+        if (hpP < 60) hc = 0xFFFFFF00;
+        if (hpP < 30) hc = 0xFFFF0000;
+        String ht = String.format("%.0f", m.hp);
+        int hw = client.textRenderer.getWidth(ht);
+        dc.drawTextWithShadow(client.textRenderer, Text.literal(ht), m.x - hw / 2, m.y + 10, hc);
+    }
+    for (IM m : ims) {
+        int nw = client.textRenderer.getWidth(m.name);
+        dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
+    }
+    }
