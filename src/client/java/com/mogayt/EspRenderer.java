@@ -74,7 +74,6 @@ public class EspRenderer {
             }
         }
 
-        // Красный толстый хитбокс по цели, в которую летит снаряд
         for (HitTracker.Entry entry : HitTracker.hits) {
             LivingEntity e = entry.entity;
             if (e == client.player) continue;
@@ -156,16 +155,75 @@ public class EspRenderer {
         if (client.getWindow() == null) return;
         int sw = client.getWindow().getScaledWidth();
         int sh = client.getWindow().getScaledHeight();
-// Уведомления в левом верхнем углу
-Notification.tick();
-if (!Notification.entries.isEmpty() && client.textRenderer != null) {
-    int ny = 5;
-    for (Notification.Entry e : Notification.entries) {
-        dc.drawTextWithShadow(client.textRenderer, Text.literal(e.text), 5, ny, 0xFFFFFFFF);
-        ny += 10;
-    }
-}
-        
+
+        // ===== HUD СПИСОК ВСЕХ ФУНКЦИЙ (постоянно) =====
+        if (client.textRenderer != null) {
+            int x = 2;
+            int y = 5;
+            int lineH = 10;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("ESP [" + BlockEspMod.getOreName() + "]: " + (BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, BlockEspMod.espEnabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("ChestESP [" + BlockEspMod.getChestName() + "]: " + (BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, BlockEspMod.chestEspEnabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("PlayerESP: " + (BlockEspMod.playerEspEnabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, BlockEspMod.playerEspEnabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("ItemESP: " + (BlockEspMod.itemEspEnabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, BlockEspMod.itemEspEnabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("AimMobs: " + (AimMobs.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, AimMobs.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("AimBot: " + (AimBot.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, AimBot.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("AutoTotem: " + (AutoTotem.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, AutoTotem.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Fullbright: " + (Fullbright.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, Fullbright.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Freecam: " + (Freecam.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, Freecam.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Fix Lag: " + (Optimizer.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, Optimizer.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("Trajectory: " + (TrajectoryPredictor.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, TrajectoryPredictor.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+
+            dc.drawTextWithShadow(client.textRenderer,
+                    Text.literal("CameraNoClip: " + (CameraNoClip.enabled ? "ВКЛ" : "ВЫКЛ")),
+                    x, y, CameraNoClip.enabled ? 0xFF00FF00 : 0xFF808080);
+            y += lineH;
+        }
+
+        // ===== Круг AimMobs =====
         if (AimMobs.enabled) {
             int cx = sw / 2, cy = sh / 2;
             int radius = (int) (sh * 0.5 * Math.tan(Math.toRadians(AimMobs.fovAngle)) / Math.tan(Math.toRadians(70.0)));
