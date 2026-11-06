@@ -2,6 +2,7 @@ package com.mogayt;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -15,6 +16,10 @@ public class AimMobs {
     public static double aimSpeed = 5.0;
     public static double aimDistance = 16.0;
     public static double fovAngle = 15.0;
+
+    // НОВЫЕ НАСТРОЙКИ
+    public static boolean targetPlayers = false;
+    public static boolean targetMobs = true;
 
     public static void tick(MinecraftClient client) {
         if (!enabled || client.player == null || client.world == null) return;
@@ -33,11 +38,14 @@ public class AimMobs {
         for (LivingEntity living : client.world.getEntitiesByClass(LivingEntity.class, box, e -> e != player)) {
             if (!living.isAlive()) continue;
 
-            // Squared distance — без sqrt
+            // ФИЛЬТРАЦИЯ ЦЕЛЕЙ
+            if (living instanceof PlayerEntity && !targetPlayers) continue;
+            if (living instanceof MobEntity && !targetMobs) continue;
+            if (!(living instanceof PlayerEntity) && !(living instanceof MobEntity)) continue;
+
             double distSq = player.squaredDistanceTo(living);
             if (distSq > maxDistSq) continue;
 
-            // Угол через dot — без acos
             Vec3d toTarget = living.getPos()
                     .add(0, living.getHeight() / 2.0, 0)
                     .subtract(eyePos)
@@ -45,7 +53,6 @@ public class AimMobs {
             double dot = look.dotProduct(toTarget);
             if (dot < fovCos) continue;
 
-            // Рейкаст только для кандидатов, прошедших дистанцию и угол
             Vec3d targetEye = living.getPos().add(0, living.getHeight() / 2.0, 0);
             BlockHitResult hit = client.world.raycast(new RaycastContext(
                     eyePos, targetEye,
