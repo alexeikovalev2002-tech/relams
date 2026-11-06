@@ -4,41 +4,39 @@ import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyBinds {
-
     public static int espKey = -1;
     public static int chestKey = -1;
     public static int playerKey = -1;
     public static int itemKey = -1;
     public static int aimMobsKey = -1;
     public static int aimBotKey = -1;
+    public static int maceAuraKey = -1; // Новая клавиша
     public static int fullbrightKey = -1;
     public static int freecamKey = -1;
     public static int optimizerKey = -1;
     public static int trajectoryKey = -1;
 
-    private static final boolean[] wasPressed = new boolean[10];
+    private static final boolean[] wasPressed = new boolean[11];
 
     public static void tick(MinecraftClient client) {
         if (client.getWindow() == null) return;
         if (client.currentScreen != null) {
-            for (int i = 0; i < 10; i++) wasPressed[i] = true;
+            for (int i = 0; i < 11; i++) wasPressed[i] = true;
             return;
         }
         long h = client.getWindow().getHandle();
 
-        if (check(h, 0, espKey)) BlockEspMod.espEnabled = !BlockEspMod.espEnabled;
-        if (check(h, 1, chestKey)) BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled;
-        if (check(h, 2, playerKey)) BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled;
-        if (check(h, 3, itemKey)) BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled;
-        if (check(h, 4, aimMobsKey)) AimMobs.enabled = !AimMobs.enabled;
-        if (check(h, 5, aimBotKey)) AimBot.enabled = !AimBot.enabled;
-        if (check(h, 6, fullbrightKey)) Fullbright.enabled = !Fullbright.enabled;
-        if (check(h, 7, freecamKey)) {
-            Freecam.enabled = !Freecam.enabled;
-            if (Freecam.enabled) Freecam.onEnable();
-        }
-        if (check(h, 8, optimizerKey)) Optimizer.enabled = !Optimizer.enabled;
-        if (check(h, 9, trajectoryKey)) TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled;
+        if (check(h, 0, espKey)) { BlockEspMod.espEnabled = !BlockEspMod.espEnabled; Notification.show("ESP", BlockEspMod.espEnabled); }
+        if (check(h, 1, chestKey)) { BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled; Notification.show("ChestESP", BlockEspMod.chestEspEnabled); }
+        if (check(h, 2, playerKey)) { BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled; Notification.show("PlayerESP", BlockEspMod.playerEspEnabled); }
+        if (check(h, 3, itemKey)) { BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled; Notification.show("ItemESP", BlockEspMod.itemEspEnabled); }
+        if (check(h, 4, aimMobsKey)) { AimMobs.enabled = !AimMobs.enabled; Notification.show("AimMobs", AimMobs.enabled); }
+        if (check(h, 5, aimBotKey)) { AimBot.enabled = !AimBot.enabled; Notification.show("AimBot", AimBot.enabled); }
+        if (check(h, 6, maceAuraKey)) { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); }
+        if (check(h, 7, fullbrightKey)) { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); }
+        if (check(h, 8, freecamKey)) { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); Notification.show("Freecam", Freecam.enabled); }
+        if (check(h, 9, optimizerKey)) { Optimizer.enabled = !Optimizer.enabled; Notification.show("Fix Lag", Optimizer.enabled); }
+        if (check(h, 10, trajectoryKey)) { TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled; Notification.show("Trajectory", TrajectoryPredictor.enabled); }
     }
 
     private static boolean check(long h, int idx, int key) {
