@@ -22,12 +22,29 @@ public class MaceAuraScreen extends Screen {
                     Notification.show("MaceAura", MaceAura.enabled);
                     b.setMessage(Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, cy - 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 40, 200, 20).build());
+
+        // Кнопки выбора цели
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Игроки: " + (MaceAura.targetPlayers ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    MaceAura.targetPlayers = !MaceAura.targetPlayers;
+                    b.setMessage(Text.literal("Игроки: " + (MaceAura.targetPlayers ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 - 100, cy - 10, 95, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Мобы: " + (MaceAura.targetMobs ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    MaceAura.targetMobs = !MaceAura.targetMobs;
+                    b.setMessage(Text.literal("Мобы: " + (MaceAura.targetMobs ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 + 5, cy - 10, 95, 20).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
                 (b) -> { if (this.client != null) this.client.setScreen(new EspMenuScreen()); }
-        ).dimensions(this.width / 2 - 100, cy + 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy + 30, 200, 20).build());
     }
 
     @Override
