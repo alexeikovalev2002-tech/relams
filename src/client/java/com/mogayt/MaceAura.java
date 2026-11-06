@@ -1,17 +1,25 @@
 package com.mogayt;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 public class MaceAura {
 
     public static boolean enabled = false;
+    
+    // НОВЫЕ НАСТРОЙКИ
+    public static boolean targetPlayers = true;
+    public static boolean targetMobs = false;
+    
     private static long lastAttack = 0;
 
     public static void tick(MinecraftClient client) {
@@ -24,19 +32,27 @@ public class MaceAura {
         // 1. Проверяем, падаем ли мы
         if (me.fallDistance <= 0 && me.getVelocity().y >= -0.1) return;
 
-        // 2. Ищем ближайшего игрока
-        PlayerEntity target = null;
+        // 2. Ищем ближайшую цель (игрок или моб)
+        LivingEntity target = null;
         double bestSq = Double.MAX_VALUE;
-        for (PlayerEntity p : client.world.getPlayers()) {
-            if (p == me || !p.isAlive()) continue;
-            double dSq = me.squaredDistanceTo(p);
-            if (dSq < bestSq) { bestSq = dSq; target = p; }
+        Box searchBox = me.getBoundingBox().expand(6.0); // Ищем в радиусе 6 блоков
+        
+        for (LivingEntity entity : client.world.getEntitiesByClass(LivingEntity.class, searchBox, e -> e != me)) {
+            if (!entity.isAlive()) continue;
+
+            // ФИЛЬТРАЦИЯ ЦЕЛЕЙ
+            if (entity instanceof PlayerEntity && !targetPlayers) continue;
+            if (entity instanceof MobEntity && !targetMobs) continue;
+            if (!(entity instanceof PlayerEntity) && !(entity instanceof MobEntity)) continue;
+
+            double dSq = me.squaredDistanceTo(entity);
+            if (dSq < bestSq) { bestSq = dSq; target = entity; }
         }
 
         if (target == null) return;
 
         double dist = Math.sqrt(bestSq);
-        if (dist > 5.0) return; // Игрок должен быть в радиусе 5 блоков
+        if (dist > 5.0) return; // Игрок/моб должен быть в радиусе 5 блоков
 
         // 3. Проверяем булаву в руке
         ItemStack mainHand = me.getMainHandStack();
@@ -81,14 +97,12 @@ public class MaceAura {
     }
 
     private static int findMace(PlayerEntity player) {
-        // Сначала хотбар (0-8)
         for (int i = 0; i < 9; i++) {
             if (player.getInventory().getStack(i).getItem() == Items.MACE) return i;
         }
-        // Потом инвентарь (9-35)
         for (int i = 9; i < 36; i++) {
             if (player.getInventory().getStack(i).getItem() == Items.MACE) return i;
         }
         return -1;
     }
-                            }
+}
