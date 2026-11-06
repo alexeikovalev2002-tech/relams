@@ -22,10 +22,27 @@ public class AimMobsScreen extends Screen {
                     AimMobs.enabled = !AimMobs.enabled;
                     b.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, cy - 110, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 120, 200, 20).build());
+
+        // Кнопки выбора цели
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Игроки: " + (AimMobs.targetPlayers ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    AimMobs.targetPlayers = !AimMobs.targetPlayers;
+                    b.setMessage(Text.literal("Игроки: " + (AimMobs.targetPlayers ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 - 100, cy - 90, 95, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Мобы: " + (AimMobs.targetMobs ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    AimMobs.targetMobs = !AimMobs.targetMobs;
+                    b.setMessage(Text.literal("Мобы: " + (AimMobs.targetMobs ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 + 5, cy - 90, 95, 20).build());
 
         TextFieldWidget speedField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy - 65, 100, 20, Text.literal("Скорость"));
+                this.width / 2 - 50, cy - 55, 100, 20, Text.literal("Скорость"));
         speedField.setText(String.valueOf(AimMobs.aimSpeed));
         speedField.setChangedListener(t -> {
             try {
@@ -36,7 +53,7 @@ public class AimMobsScreen extends Screen {
         this.addDrawableChild(speedField);
 
         TextFieldWidget distField = new TextFieldWidget(this.textRenderer,
-                this.width / 2 - 50, cy - 20, 100, 20, Text.literal("Дистанция"));
+                this.width / 2 - 50, cy - 15, 100, 20, Text.literal("Дистанция"));
         distField.setText(String.valueOf(AimMobs.aimDistance));
         distField.setChangedListener(t -> {
             try {
@@ -73,9 +90,9 @@ public class AimMobsScreen extends Screen {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 15, 0xFFFFFF);
         int cy = this.height / 2;
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Скорость (1-50)"),
-                this.width / 2, cy - 77, 0xAAAAAA);
+                this.width / 2, cy - 67, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Дистанция (1-128)"),
-                this.width / 2, cy - 32, 0xAAAAAA);
+                this.width / 2, cy - 27, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("FOV (1-90°)"),
                 this.width / 2, cy + 13, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Клавиша"),
