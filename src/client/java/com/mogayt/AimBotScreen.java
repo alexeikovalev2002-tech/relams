@@ -22,7 +22,24 @@ public class AimBotScreen extends Screen {
                     AimBot.enabled = !AimBot.enabled;
                     b.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"));
                 }
-        ).dimensions(this.width / 2 - 100, cy - 60, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, cy - 80, 200, 20).build());
+
+        // Кнопки выбора цели
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Игроки: " + (AimBot.targetPlayers ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    AimBot.targetPlayers = !AimBot.targetPlayers;
+                    b.setMessage(Text.literal("Игроки: " + (AimBot.targetPlayers ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 - 100, cy - 50, 95, 20).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("Мобы: " + (AimBot.targetMobs ? "ВКЛ" : "ВЫКЛ")),
+                (b) -> {
+                    AimBot.targetMobs = !AimBot.targetMobs;
+                    b.setMessage(Text.literal("Мобы: " + (AimBot.targetMobs ? "ВКЛ" : "ВЫКЛ")));
+                }
+        ).dimensions(this.width / 2 + 5, cy - 50, 95, 20).build());
 
         TextFieldWidget distField = new TextFieldWidget(this.textRenderer,
                 this.width / 2 - 50, cy - 10, 100, 20, Text.literal("Дистанция"));
