@@ -15,6 +15,7 @@ public class EspMenuScreen extends Screen {
     private int aimX, aimY, aimW, aimH;
     private int botX, botY, botW, botH;
     private int totemX, totemY, totemW, totemH;
+    private int maceX, maceY, maceW, maceH;
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
@@ -31,38 +32,39 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
-        espX = x; espY = cy - 130; espW = w; espH = h;
-        chestX = x; chestY = cy - 112; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 94; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 76; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 58; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 40; aimW = w; aimH = h;
-        botX = x; botY = cy - 22; botW = w; botH = h;
-        totemX = x; totemY = cy - 4; totemW = w; totemH = h;
-        fbX = x; fbY = cy + 14; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 32; fcW = w; fcH = h;
-        optX = x; optY = cy + 50; optW = w; optH = h;
-        trjX = x; trjY = cy + 68; trjW = w; trjH = h;
-        cncX = x; cncY = cy + 86; cncW = w; cncH = h;
+        espX = x; espY = cy - 140; espW = w; espH = h;
+        chestX = x; chestY = cy - 122; chestW = w; chestH = h;
+        playerX = x; playerY = cy - 104; playerW = w; playerH = h;
+        itemX = x; itemY = cy - 86; itemW = w; itemH = h;
+        chatX = x; chatY = cy - 68; chatW = w; chatH = h;
+        aimX = x; aimY = cy - 50; aimW = w; aimH = h;
+        botX = x; botY = cy - 32; botW = w; botH = h;
+        totemX = x; totemY = cy - 14; totemW = w; totemH = h;
+        maceX = x; maceY = cy + 4; maceW = w; maceH = h;
+        fbX = x; fbY = cy + 22; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 40; fcW = w; fcH = h;
+        optX = x; optY = cy + 58; optW = w; optH = h;
+        trjX = x; trjY = cy + 76; trjW = w; trjH = h;
+        cncX = x; cncY = cy + 94; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
-                (b) -> { BlockEspMod.espEnabled = !BlockEspMod.espEnabled; b.setMessage(Text.literal(getEspLabel())); }
+                (b) -> { BlockEspMod.espEnabled = !BlockEspMod.espEnabled; Notification.show("ESP", BlockEspMod.espEnabled); b.setMessage(Text.literal(getEspLabel())); }
         ).dimensions(espX, espY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getChestLabel()),
-                (b) -> { BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled; b.setMessage(Text.literal(getChestLabel())); }
+                (b) -> { BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled; Notification.show("ChestESP", BlockEspMod.chestEspEnabled); b.setMessage(Text.literal(getChestLabel())); }
         ).dimensions(chestX, chestY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"),
-                (b) -> { BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled; b.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ")); }
+                (b) -> { BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled; Notification.show("PlayerESP", BlockEspMod.playerEspEnabled); b.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ")); }
         ).dimensions(playerX, playerY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ"),
-                (b) -> { BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled; b.setMessage(Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ")); }
+                (b) -> { BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled; Notification.show("ItemESP", BlockEspMod.itemEspEnabled); b.setMessage(Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ")); }
         ).dimensions(itemX, itemY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
@@ -72,48 +74,53 @@ public class EspMenuScreen extends Screen {
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ"),
-                (b) -> { AimMobs.enabled = !AimMobs.enabled; b.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ")); }
+                (b) -> { AimMobs.enabled = !AimMobs.enabled; Notification.show("AimMobs", AimMobs.enabled); b.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ")); }
         ).dimensions(aimX, aimY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"),
-                (b) -> { AimBot.enabled = !AimBot.enabled; b.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ")); }
+                (b) -> { AimBot.enabled = !AimBot.enabled; Notification.show("AimBot", AimBot.enabled); b.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ")); }
         ).dimensions(botX, botY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ"),
-                (b) -> { AutoTotem.enabled = !AutoTotem.enabled; b.setMessage(Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ")); }
+                (b) -> { AutoTotem.enabled = !AutoTotem.enabled; Notification.show("AutoTotem", AutoTotem.enabled); b.setMessage(Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ")); }
         ).dimensions(totemX, totemY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ"),
+                (b) -> { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); b.setMessage(Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ")); }
+        ).dimensions(maceX, maceY, w, h).build());
+
+        this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
-                (b) -> { Fullbright.enabled = !Fullbright.enabled; b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
+                (b) -> { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
         ).dimensions(fbX, fbY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"),
-                (b) -> { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); b.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ")); }
+                (b) -> { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); Notification.show("Freecam", Freecam.enabled); b.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ")); }
         ).dimensions(fcX, fcY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
-                (b) -> { Optimizer.enabled = !Optimizer.enabled; b.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ")); }
+                (b) -> { Optimizer.enabled = !Optimizer.enabled; Notification.show("Fix Lag", Optimizer.enabled); b.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ")); }
         ).dimensions(optX, optY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
-                (b) -> { TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled; b.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ")); }
+                (b) -> { TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled; Notification.show("Trajectory", TrajectoryPredictor.enabled); b.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ")); }
         ).dimensions(trjX, trjY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ"),
-                (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
+                (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; Notification.show("CameraNoClip", CameraNoClip.enabled); b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
         ).dimensions(cncX, cncY, w, h).build());
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 110, w, h).build());
+        ).dimensions(x, cy + 118, w, h).build());
     }
 
     private String getEspLabel() {
@@ -135,6 +142,7 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
             if (inside(mx, my, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
             if (inside(mx, my, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
+            if (inside(mx, my, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
             if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
