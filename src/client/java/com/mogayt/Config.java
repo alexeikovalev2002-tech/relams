@@ -32,6 +32,10 @@ public class Config {
             w.println("aimFov=" + AimMobs.fovAngle);
             w.println("aimBot=" + AimBot.enabled);
             w.println("aimBotDist=" + AimBot.distance);
+            w.println("autoTotem=" + AutoTotem.enabled);
+            w.println("autoTotemHearts=" + AutoTotem.heartsThreshold);
+            w.println("autoTotemInv=" + AutoTotem.useFromInventory);
+            w.println("maceAura=" + MaceAura.enabled);
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
@@ -44,6 +48,7 @@ public class Config {
             w.println("k.item=" + KeyBinds.itemKey);
             w.println("k.aimMobs=" + KeyBinds.aimMobsKey);
             w.println("k.aimBot=" + KeyBinds.aimBotKey);
+            w.println("k.maceAura=" + KeyBinds.maceAuraKey);
             w.println("k.fullbright=" + KeyBinds.fullbrightKey);
             w.println("k.freecam=" + KeyBinds.freecamKey);
             w.println("k.optimizer=" + KeyBinds.optimizerKey);
@@ -85,6 +90,10 @@ public class Config {
                     else if (k.equals("aimFov")) AimMobs.fovAngle = Double.parseDouble(v);
                     else if (k.equals("aimBot")) AimBot.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("aimBotDist")) AimBot.distance = Double.parseDouble(v);
+                    else if (k.equals("autoTotem")) AutoTotem.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("autoTotemHearts")) AutoTotem.heartsThreshold = Float.parseFloat(v);
+                    else if (k.equals("autoTotemInv")) AutoTotem.useFromInventory = Boolean.parseBoolean(v);
+                    else if (k.equals("maceAura")) MaceAura.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
@@ -97,6 +106,7 @@ public class Config {
                     else if (k.equals("k.item")) KeyBinds.itemKey = Integer.parseInt(v);
                     else if (k.equals("k.aimMobs")) KeyBinds.aimMobsKey = Integer.parseInt(v);
                     else if (k.equals("k.aimBot")) KeyBinds.aimBotKey = Integer.parseInt(v);
+                    else if (k.equals("k.maceAura")) KeyBinds.maceAuraKey = Integer.parseInt(v);
                     else if (k.equals("k.fullbright")) KeyBinds.fullbrightKey = Integer.parseInt(v);
                     else if (k.equals("k.freecam")) KeyBinds.freecamKey = Integer.parseInt(v);
                     else if (k.equals("k.optimizer")) KeyBinds.optimizerKey = Integer.parseInt(v);
