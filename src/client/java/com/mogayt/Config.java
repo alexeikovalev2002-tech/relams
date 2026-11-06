@@ -26,22 +26,39 @@ public class Config {
             w.println("playerDistance=" + BlockEspMod.playerDistance);
             w.println("itemEspEnabled=" + BlockEspMod.itemEspEnabled);
             w.println("itemDistance=" + BlockEspMod.itemDistance);
+            
+            // AimMobs
             w.println("aimMobs=" + AimMobs.enabled);
             w.println("aimSpeed=" + AimMobs.aimSpeed);
             w.println("aimDistance=" + AimMobs.aimDistance);
             w.println("aimFov=" + AimMobs.fovAngle);
+            w.println("aimMobsPlayers=" + AimMobs.targetPlayers);
+            w.println("aimMobsMobs=" + AimMobs.targetMobs);
+            
+            // AimBot
             w.println("aimBot=" + AimBot.enabled);
             w.println("aimBotDist=" + AimBot.distance);
+            w.println("aimBotPlayers=" + AimBot.targetPlayers);
+            w.println("aimBotMobs=" + AimBot.targetMobs);
+            
+            // Прочее
             w.println("autoTotem=" + AutoTotem.enabled);
             w.println("autoTotemHearts=" + AutoTotem.heartsThreshold);
             w.println("autoTotemInv=" + AutoTotem.useFromInventory);
+            
+            // MaceAura
             w.println("maceAura=" + MaceAura.enabled);
+            w.println("maceAuraPlayers=" + MaceAura.targetPlayers);
+            w.println("maceAuraMobs=" + MaceAura.targetMobs);
+            
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
             w.println("trajectory=" + TrajectoryPredictor.enabled);
             w.println("trajectoryWidth=" + TrajectoryPredictor.lineWidth);
             w.println("cameraNoClip=" + CameraNoClip.enabled);
+            
+            // Клавиши
             w.println("k.esp=" + KeyBinds.espKey);
             w.println("k.chest=" + KeyBinds.chestKey);
             w.println("k.player=" + KeyBinds.playerKey);
@@ -53,6 +70,8 @@ public class Config {
             w.println("k.freecam=" + KeyBinds.freecamKey);
             w.println("k.optimizer=" + KeyBinds.optimizerKey);
             w.println("k.trajectory=" + KeyBinds.trajectoryKey);
+            
+            // Бинды чата
             for (int i = 0; i < ChatBind.binds.size(); i++) {
                 ChatBind.Bind b = ChatBind.binds.get(i);
                 w.println("bind." + i + ".cmd=" + b.command);
@@ -84,22 +103,39 @@ public class Config {
                     else if (k.equals("playerDistance")) BlockEspMod.playerDistance = Integer.parseInt(v);
                     else if (k.equals("itemEspEnabled")) BlockEspMod.itemEspEnabled = Boolean.parseBoolean(v);
                     else if (k.equals("itemDistance")) BlockEspMod.itemDistance = Integer.parseInt(v);
+                    
+                    // AimMobs
                     else if (k.equals("aimMobs")) AimMobs.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("aimSpeed")) AimMobs.aimSpeed = Double.parseDouble(v);
                     else if (k.equals("aimDistance")) AimMobs.aimDistance = Double.parseDouble(v);
                     else if (k.equals("aimFov")) AimMobs.fovAngle = Double.parseDouble(v);
+                    else if (k.equals("aimMobsPlayers")) AimMobs.targetPlayers = Boolean.parseBoolean(v);
+                    else if (k.equals("aimMobsMobs")) AimMobs.targetMobs = Boolean.parseBoolean(v);
+                    
+                    // AimBot
                     else if (k.equals("aimBot")) AimBot.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("aimBotDist")) AimBot.distance = Double.parseDouble(v);
+                    else if (k.equals("aimBotPlayers")) AimBot.targetPlayers = Boolean.parseBoolean(v);
+                    else if (k.equals("aimBotMobs")) AimBot.targetMobs = Boolean.parseBoolean(v);
+                    
+                    // Прочее
                     else if (k.equals("autoTotem")) AutoTotem.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("autoTotemHearts")) AutoTotem.heartsThreshold = Float.parseFloat(v);
                     else if (k.equals("autoTotemInv")) AutoTotem.useFromInventory = Boolean.parseBoolean(v);
+                    
+                    // MaceAura
                     else if (k.equals("maceAura")) MaceAura.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("maceAuraPlayers")) MaceAura.targetPlayers = Boolean.parseBoolean(v);
+                    else if (k.equals("maceAuraMobs")) MaceAura.targetMobs = Boolean.parseBoolean(v);
+                    
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectory")) TrajectoryPredictor.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("trajectoryWidth")) TrajectoryPredictor.lineWidth = Float.parseFloat(v);
                     else if (k.equals("cameraNoClip")) CameraNoClip.enabled = Boolean.parseBoolean(v);
+                    
+                    // Клавиши
                     else if (k.equals("k.esp")) KeyBinds.espKey = Integer.parseInt(v);
                     else if (k.equals("k.chest")) KeyBinds.chestKey = Integer.parseInt(v);
                     else if (k.equals("k.player")) KeyBinds.playerKey = Integer.parseInt(v);
@@ -111,6 +147,8 @@ public class Config {
                     else if (k.equals("k.freecam")) KeyBinds.freecamKey = Integer.parseInt(v);
                     else if (k.equals("k.optimizer")) KeyBinds.optimizerKey = Integer.parseInt(v);
                     else if (k.equals("k.trajectory")) KeyBinds.trajectoryKey = Integer.parseInt(v);
+                    
+                    // Бинды
                     else if (k.startsWith("bind.")) {
                         String[] p = k.split("\\.");
                         if (p.length == 3) {
@@ -133,4 +171,4 @@ public class Config {
             ChatBind.binds.addAll(loaded);
         }
     }
-}
+                        }
