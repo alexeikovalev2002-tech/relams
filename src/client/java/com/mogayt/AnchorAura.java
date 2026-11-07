@@ -2,6 +2,7 @@ package com.mogayt;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity; // <-- Добавлен импорт
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -26,7 +27,8 @@ public class AnchorAura {
         if (client.interactionManager == null || client.getNetworkHandler() == null) return;
         if (client.currentScreen != null) return;
 
-        PlayerEntity me = client.player;
+        // ИСПРАВЛЕНО: Меняем тип на ClientPlayerEntity
+        ClientPlayerEntity me = client.player; 
 
         // 1. Проверяем, есть ли игроки в радиусе
         boolean playerNearby = false;
@@ -77,7 +79,7 @@ public class AnchorAura {
         }
     }
 
-    private static BlockPos findNearbyAnchor(MinecraftClient client, PlayerEntity me) {
+    private static BlockPos findNearbyAnchor(MinecraftClient client, ClientPlayerEntity me) {
         BlockPos pp = me.getBlockPos();
         // Ищем якорь в радиусе 4 блоков по горизонтали и вертикали
         for (BlockPos pos : BlockPos.iterate(pp.add(-4, -2, -4), pp.add(4, 2, 4))) {
