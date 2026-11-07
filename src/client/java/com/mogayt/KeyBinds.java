@@ -10,18 +10,20 @@ public class KeyBinds {
     public static int itemKey = -1;
     public static int aimMobsKey = -1;
     public static int aimBotKey = -1;
-    public static int maceAuraKey = -1; // Новая клавиша
+    public static int maceAuraKey = -1;
+    public static int crystalAuraKey = -1; // Новая клавиша для CrystalAura
     public static int fullbrightKey = -1;
     public static int freecamKey = -1;
     public static int optimizerKey = -1;
     public static int trajectoryKey = -1;
 
-    private static final boolean[] wasPressed = new boolean[11];
+    // Увеличили массив с 11 до 12, чтобы вместить новую кнопку
+    private static final boolean[] wasPressed = new boolean[12];
 
     public static void tick(MinecraftClient client) {
         if (client.getWindow() == null) return;
         if (client.currentScreen != null) {
-            for (int i = 0; i < 11; i++) wasPressed[i] = true;
+            for (int i = 0; i < 12; i++) wasPressed[i] = true; // Сброс при открытом меню
             return;
         }
         long h = client.getWindow().getHandle();
@@ -33,6 +35,10 @@ public class KeyBinds {
         if (check(h, 4, aimMobsKey)) { AimMobs.enabled = !AimMobs.enabled; Notification.show("AimMobs", AimMobs.enabled); }
         if (check(h, 5, aimBotKey)) { AimBot.enabled = !AimBot.enabled; Notification.show("AimBot", AimBot.enabled); }
         if (check(h, 6, maceAuraKey)) { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); }
+        
+        // Новая проверка для CrystalAura (индекс 11)
+        if (check(h, 11, crystalAuraKey)) { CrystalAura.enabled = !CrystalAura.enabled; Notification.show("CrystalAura", CrystalAura.enabled); }
+        
         if (check(h, 7, fullbrightKey)) { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); }
         if (check(h, 8, freecamKey)) { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); Notification.show("Freecam", Freecam.enabled); }
         if (check(h, 9, optimizerKey)) { Optimizer.enabled = !Optimizer.enabled; Notification.show("Fix Lag", Optimizer.enabled); }
