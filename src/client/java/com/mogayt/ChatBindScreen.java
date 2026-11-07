@@ -44,28 +44,55 @@ public class ChatBindScreen extends Screen {
                 }
             });
             this.addDrawableChild(keyField);
+
+            // Кнопка удаления (X) для каждой строки
+            this.addDrawableChild(ButtonWidget.builder(
+                    Text.literal("X"),
+                    (button) -> {
+                        ChatBind.binds.remove(idx);
+                        Config.save(); // Сохраняем изменения
+                        this.clearAndInit(); // Перестраиваем экран
+                    }
+            ).dimensions(this.width / 2 + 115, y, 20, 20).build());
         }
 
+        // Вычисляем Y для нижних кнопок (зависит от количества строк)
+        int bottomY = startY + ChatBind.binds.size() * rowH + 20;
+
+        // Кнопка "Назад"
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Назад"),
                 (button) -> {
+                    Config.save(); // Сохраняем перед выходом
                     if (this.client != null) {
                         this.client.setScreen(new EspMenuScreen());
                     }
                 }
-        ).dimensions(this.width / 2 - 100, startY + ChatBind.binds.size() * rowH + 20, 200, 20).build());
+        ).dimensions(this.width / 2 - 100, bottomY, 95, 20).build());
+
+        // Кнопка добавления новой строки (+)
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal("+"),
+                (button) -> {
+                    ChatBind.binds.add(new ChatBind.Bind("", -1));
+                    Config.save();
+                    this.clearAndInit();
+                }
+        ).dimensions(this.width / 2 + 5, bottomY, 95, 20).build());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
+        
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Команда"),
                 this.width / 2 - 30, this.height / 2 - 105, 0xAAAAAA);
         context.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("Клавиша"),
                 this.width / 2 + 82, this.height / 2 - 105, 0xAAAAAA);
+                
         super.render(context, mouseX, mouseY, delta);
     }
 
