@@ -29,8 +29,9 @@ public class CrystalAura {
         for (EndCrystalEntity crystal : client.world.getEntitiesByClass(EndCrystalEntity.class, searchBox, e -> true)) {
             if (!crystal.isAlive()) continue;
             
-            // Проверка высоты: если игрок выше кристалла (или на его уровне), не бьем, чтобы не взорваться
-            if (me.getY() >= crystal.getY() - 0.2) continue; 
+            // Проверка высоты. Если ноги игрока выше низа кристалла на 0.5 блока и больше — пропускаем (не бьем).
+            // Это не дает взорваться, если ты запрыгнул на блок выше.
+            if (me.getY() > crystal.getY() + 0.5) continue; 
 
             double distSq = me.squaredDistanceTo(crystal);
             if (distSq < bestDistSq) {
@@ -42,8 +43,7 @@ public class CrystalAura {
         if (target == null) return;
 
         Vec3d eyePos = me.getEyePos();
-        // Берем центр хитбокса кристалла
-        Vec3d targetPos = target.getPos().add(0, target.getHeight() / 2.0, 0);
+        Vec3d targetPos = target.getPos().add(0, target.getHeight() / 2.0, 0); 
         
         double dx = targetPos.x - eyePos.x;
         double dy = targetPos.y - eyePos.y;
@@ -68,13 +68,13 @@ public class CrystalAura {
         me.setYaw(me.getYaw() + yawDiff * factor);
         me.setPitch(me.getPitch() + pitchDiff * factor);
 
-        // Проверяем, попал ли прицел в кристалл
-        Vec3d look = me.getRotationVector();
-        Vec3d toTarget = targetPos.subtract(eyePos).normalize();
-        double dot = look.dotProduct(toTarget);
+        // === НОВАЯ ПРОВЕРКА ХИТБОКСА ===
+        // Берем текущий вектор взгляда и делаем луч (Raycast) из глаз в сторону взгляда
+        Vec3d lookVec = me.getRotationVector();
+        Vec3d endPos = eyePos.add(lookVec.multiply(range + 1.0)); // +1.0 запас на толщину хитбокса
 
-        // 0.99 означает, что прицел смотрит почти точно в центр (около 8 градусов погрешности)
-        if (dot > 0.99) {
+        // Если луч пересекает хитбокс кристалла (куда бы ты ни смотрел в его сторону) — бьем!
+        if (target.getBoundingBox().raycast(eyePos, endPos).isPresent()) {
             long now = System.currentTimeMillis();
             if (now - lastAttack >= 100) { // Бьем не чаще раза в 100 мс
                 client.interactionManager.attackEntity(me, target);
