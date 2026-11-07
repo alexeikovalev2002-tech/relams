@@ -16,6 +16,7 @@ public class EspMenuScreen extends Screen {
     private int botX, botY, botW, botH;
     private int totemX, totemY, totemW, totemH;
     private int maceX, maceY, maceW, maceH;
+    private int crystalX, crystalY, crystalW, crystalH; // Новая кнопка
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
@@ -41,11 +42,12 @@ public class EspMenuScreen extends Screen {
         botX = x; botY = cy - 32; botW = w; botH = h;
         totemX = x; totemY = cy - 14; totemW = w; totemH = h;
         maceX = x; maceY = cy + 4; maceW = w; maceH = h;
-        fbX = x; fbY = cy + 22; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 40; fcW = w; fcH = h;
-        optX = x; optY = cy + 58; optW = w; optH = h;
-        trjX = x; trjY = cy + 76; trjW = w; trjH = h;
-        cncX = x; cncY = cy + 94; cncW = w; cncH = h;
+        crystalX = x; crystalY = cy + 22; crystalW = w; crystalH = h; // Сдвинули вниз
+        fbX = x; fbY = cy + 40; fbW = w; fbH = h;
+        fcX = x; fcY = cy + 58; fcW = w; fcH = h;
+        optX = x; optY = cy + 76; optW = w; optH = h;
+        trjX = x; trjY = cy + 94; trjW = w; trjH = h;
+        cncX = x; cncY = cy + 112; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -92,6 +94,12 @@ public class EspMenuScreen extends Screen {
                 (b) -> { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); b.setMessage(Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ")); }
         ).dimensions(maceX, maceY, w, h).build());
 
+        // Новая кнопка CrystalAura
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(CrystalAura.enabled ? "CrystalAura: ВКЛ" : "CrystalAura: ВЫКЛ"),
+                (b) -> { CrystalAura.enabled = !CrystalAura.enabled; Notification.show("CrystalAura", CrystalAura.enabled); b.setMessage(Text.literal(CrystalAura.enabled ? "CrystalAura: ВКЛ" : "CrystalAura: ВЫКЛ")); }
+        ).dimensions(crystalX, crystalY, w, h).build());
+
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
                 (b) -> { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
@@ -120,7 +128,7 @@ public class EspMenuScreen extends Screen {
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 118, w, h).build());
+        ).dimensions(x, cy + 136, w, h).build()); // Сдвинули кнопку Закрыть вниз
     }
 
     private String getEspLabel() {
@@ -143,6 +151,8 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
             if (inside(mx, my, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
             if (inside(mx, my, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
+            // ПКМ по CrystalAura
+            if (inside(mx, my, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
             if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
