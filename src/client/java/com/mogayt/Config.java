@@ -51,6 +51,9 @@ public class Config {
             w.println("crystalAuraRange=" + CrystalAura.range);
             w.println("crystalAuraSpeed=" + CrystalAura.aimSpeed);
 
+            w.println("anchorAura=" + AnchorAura.enabled);
+            w.println("anchorAuraRange=" + AnchorAura.range);
+
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
@@ -66,6 +69,7 @@ public class Config {
             w.println("k.aimBot=" + KeyBinds.aimBotKey);
             w.println("k.maceAura=" + KeyBinds.maceAuraKey);
             w.println("k.crystalAura=" + KeyBinds.crystalAuraKey);
+            w.println("k.anchorAura=" + KeyBinds.anchorAuraKey);
             w.println("k.fullbright=" + KeyBinds.fullbrightKey);
             w.println("k.freecam=" + KeyBinds.freecamKey);
             w.println("k.optimizer=" + KeyBinds.optimizerKey);
@@ -127,6 +131,9 @@ public class Config {
                     else if (k.equals("crystalAuraRange")) CrystalAura.range = Double.parseDouble(v);
                     else if (k.equals("crystalAuraSpeed")) CrystalAura.aimSpeed = Double.parseDouble(v);
 
+                    else if (k.equals("anchorAura")) AnchorAura.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("anchorAuraRange")) AnchorAura.range = Double.parseDouble(v);
+
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
@@ -142,6 +149,7 @@ public class Config {
                     else if (k.equals("k.aimBot")) KeyBinds.aimBotKey = Integer.parseInt(v);
                     else if (k.equals("k.maceAura")) KeyBinds.maceAuraKey = Integer.parseInt(v);
                     else if (k.equals("k.crystalAura")) KeyBinds.crystalAuraKey = Integer.parseInt(v);
+                    else if (k.equals("k.anchorAura")) KeyBinds.anchorAuraKey = Integer.parseInt(v);
                     else if (k.equals("k.fullbright")) KeyBinds.fullbrightKey = Integer.parseInt(v);
                     else if (k.equals("k.freecam")) KeyBinds.freecamKey = Integer.parseInt(v);
                     else if (k.equals("k.optimizer")) KeyBinds.optimizerKey = Integer.parseInt(v);
@@ -169,4 +177,4 @@ public class Config {
             ChatBind.binds.addAll(loaded);
         }
     }
-                        }
+}
