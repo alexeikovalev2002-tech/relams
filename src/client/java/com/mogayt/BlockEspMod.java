@@ -177,7 +177,6 @@ public class BlockEspMod implements ClientModInitializer {
         ChatBind.register();
         EspRenderer.register();
 
-        // Оба аима теперь в START_CLIENT_TICK
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             AimMobs.tick(client);
             AimBot.tick(client);
@@ -194,7 +193,10 @@ public class BlockEspMod implements ClientModInitializer {
             HitTracker.update(client);
             AutoTotem.tick(client);
             MaceAura.tick(client);
-            // AimBot.tick(client); // УБРАНО ОТСЮДА
+            
+            // ВЫЗОВ НОВОГО МОДУЛЯ
+            CrystalAura.tick(client); 
+            
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
 
@@ -280,4 +282,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         }
     }
-    }
+}
