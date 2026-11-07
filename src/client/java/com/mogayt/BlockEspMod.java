@@ -193,9 +193,10 @@ public class BlockEspMod implements ClientModInitializer {
             HitTracker.update(client);
             AutoTotem.tick(client);
             MaceAura.tick(client);
+            CrystalAura.tick(client);
             
             // ВЫЗОВ НОВОГО МОДУЛЯ
-            CrystalAura.tick(client); 
+            AnchorAura.tick(client);
             
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
