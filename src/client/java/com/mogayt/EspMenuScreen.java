@@ -18,21 +18,21 @@ public class EspMenuScreen extends Screen {
     private int maceX, maceY, maceW, maceH;
     private int crystalX, crystalY, crystalW, crystalH;
     private int anchorX, anchorY, anchorW, anchorH;
+    private int triggerX, triggerY, triggerW, triggerH; // Новая кнопка
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
     private int trjX, trjY, trjW, trjH;
     private int cncX, cncY, cncW, cncH;
 
-    // Настройки скролла и ползунка
     private double scrollOffset = 0;
     private double maxScroll = 0;
     private int scrollbarX, scrollbarY, scrollbarW, scrollbarH;
     private boolean isDragging = false;
 
-    // Общая высота контента (от первой кнопки до низа последней)
-    private static final int TOTAL_CONTENT_HEIGHT = 304;
-    private static final int VIEW_HEIGHT_MARGIN = 50; // Отступы сверху и снизу экрана
+    // Увеличили высоту контента, так как добавилась кнопка
+    private static final int TOTAL_CONTENT_HEIGHT = 322;
+    private static final int VIEW_HEIGHT_MARGIN = 50;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -44,17 +44,14 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
-        // Вычисляем область просмотра и максимальный скролл
         int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
         maxScroll = Math.max(0, TOTAL_CONTENT_HEIGHT - viewHeight);
 
-        // Ограничиваем скролл
         if (scrollOffset < 0) scrollOffset = 0;
         if (scrollOffset > maxScroll) scrollOffset = maxScroll;
 
         int startY = (cy - 140) - (int) scrollOffset;
         
-        // Настройки ползунка
         scrollbarX = this.width / 2 + 105;
         scrollbarY = cy - 140;
         scrollbarW = 6;
@@ -71,11 +68,12 @@ public class EspMenuScreen extends Screen {
         maceX = x; maceY = startY + 144; maceW = w; maceH = h;
         crystalX = x; crystalY = startY + 162; crystalW = w; crystalH = h;
         anchorX = x; anchorY = startY + 180; anchorW = w; anchorH = h;
-        fbX = x; fbY = startY + 198; fbW = w; fbH = h;
-        fcX = x; fcY = startY + 216; fcW = w; fcH = h;
-        optX = x; optY = startY + 234; optW = w; optH = h;
-        trjX = x; trjY = startY + 252; trjW = w; trjH = h;
-        cncX = x; cncY = startY + 270; cncW = w; cncH = h;
+        triggerX = x; triggerY = startY + 198; triggerW = w; triggerH = h; // Новая позиция
+        fbX = x; fbY = startY + 216; fbW = w; fbH = h;
+        fcX = x; fcY = startY + 234; fcW = w; fcH = h;
+        optX = x; optY = startY + 252; optW = w; optH = h;
+        trjX = x; trjY = startY + 270; trjW = w; trjH = h;
+        cncX = x; cncY = startY + 288; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -132,6 +130,12 @@ public class EspMenuScreen extends Screen {
                 (b) -> { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); b.setMessage(Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ")); }
         ).dimensions(anchorX, anchorY, w, h).build());
 
+        // Новая кнопка TriggerBot
+        this.addDrawableChild(ButtonWidget.builder(
+                Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ"),
+                (b) -> { TriggerBot.enabled = !TriggerBot.enabled; Notification.show("TriggerBot", TriggerBot.enabled); b.setMessage(Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ")); }
+        ).dimensions(triggerX, triggerY, w, h).build());
+
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
                 (b) -> { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
@@ -160,23 +164,20 @@ public class EspMenuScreen extends Screen {
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, startY + 288, w, h).build());
+        ).dimensions(x, startY + 306, w, h).build());
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        scrollOffset -= verticalAmount * 15; // Крутим колесико
-        
+        scrollOffset -= verticalAmount * 15; 
         if (scrollOffset < 0) scrollOffset = 0;
         if (scrollOffset > maxScroll) scrollOffset = maxScroll;
-        
         this.clearAndInit();
         return true;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Проверяем клик по ползунку
         if (button == 0 && maxScroll > 0) {
             int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
             int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
@@ -200,6 +201,8 @@ public class EspMenuScreen extends Screen {
             if (inside(mouseX, mouseY, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
             if (inside(mouseX, mouseY, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
             if (inside(mouseX, mouseY, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
+            // ПКМ по TriggerBot
+            if (inside(mouseX, mouseY, triggerX, triggerY, triggerW, triggerH)) { if (this.client != null) this.client.setScreen(new TriggerBotScreen()); return true; }
             if (inside(mouseX, mouseY, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mouseX, mouseY, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
             if (inside(mouseX, mouseY, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
@@ -215,12 +218,9 @@ public class EspMenuScreen extends Screen {
             int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
             int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
             double scrollableTrack = scrollbarH - thumbHeight;
-
-            // Центрируем ползунок относительно курсора мыши
             double ratio = (mouseY - scrollbarY - (thumbHeight / 2.0)) / scrollableTrack;
             if (ratio < 0) ratio = 0;
             if (ratio > 1) ratio = 1;
-
             scrollOffset = ratio * maxScroll;
             this.clearAndInit();
             return true;
@@ -242,12 +242,8 @@ public class EspMenuScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
         
-        // Рисуем ползунок (только если есть что скроллить)
         if (maxScroll > 0) {
-            // Фон ползунка
             context.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarW, scrollbarY + scrollbarH, 0x55000000);
-            
-            // Сам ползунок
             int thumbHeight = Math.max(20, (int) ((float) scrollbarH * scrollbarH / TOTAL_CONTENT_HEIGHT));
             int thumbY = scrollbarY + (int) ((scrollOffset / maxScroll) * (scrollbarH - thumbHeight));
             context.fill(scrollbarX, thumbY, scrollbarX + scrollbarW, thumbY + thumbHeight, 0xFFAAAAAA);
