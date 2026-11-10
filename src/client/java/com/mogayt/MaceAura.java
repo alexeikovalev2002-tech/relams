@@ -1,6 +1,7 @@
 package com.mogayt;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,7 +17,7 @@ public class MaceAura {
 
     public static boolean enabled = false;
     
-    // НОВЫЕ НАСТРОЙКИ
+    // Настройки целей (сохранены из предыдущих обновлений)
     public static boolean targetPlayers = true;
     public static boolean targetMobs = false;
     
@@ -27,50 +28,55 @@ public class MaceAura {
         if (client.interactionManager == null || client.getNetworkHandler() == null) return;
         if (client.currentScreen != null) return;
 
-        PlayerEntity me = client.player;
+        ClientPlayerEntity me = client.player;
 
-        // 1. Проверяем, падаем ли мы
+        // 1. Проверяем, падаем ли мы (работает только в падении)
         if (me.fallDistance <= 0 && me.getVelocity().y >= -0.1) return;
 
-        // 2. Ищем ближайшую цель (игрок или моб)
+        // 2. Ищем ближайшую цель
         LivingEntity target = null;
         double bestSq = Double.MAX_VALUE;
-        Box searchBox = me.getBoundingBox().expand(6.0); // Ищем в радиусе 6 блоков
+        Box searchBox = me.getBoundingBox().expand(6.0); // Радиус поиска
         
         for (LivingEntity entity : client.world.getEntitiesByClass(LivingEntity.class, searchBox, e -> e != me)) {
             if (!entity.isAlive()) continue;
 
-            // ФИЛЬТРАЦИЯ ЦЕЛЕЙ
+            // Фильтрация: Игроки / Мобы
             if (entity instanceof PlayerEntity && !targetPlayers) continue;
             if (entity instanceof MobEntity && !targetMobs) continue;
             if (!(entity instanceof PlayerEntity) && !(entity instanceof MobEntity)) continue;
 
+            // ГЛАВНОЕ УСЛОВИЕ: Цель должна быть НИЖЕ игрока (по Y)
+            // Если ноги цели выше или на уровне ног игрока — пропускаем
+            if (entity.getY() >= me.getY()) continue;
+
             double dSq = me.squaredDistanceTo(entity);
-            if (dSq < bestSq) { bestSq = dSq; target = entity; }
+            if (dSq < bestSq) { 
+                bestSq = dSq; 
+                target = entity; 
+            }
         }
 
         if (target == null) return;
 
         double dist = Math.sqrt(bestSq);
-        if (dist > 5.0) return; // Игрок/моб должен быть в радиусе 5 блоков
+        if (dist > 5.0) return; // Максимальная дистанция удара
 
         // 3. Проверяем булаву в руке
         ItemStack mainHand = me.getMainHandStack();
         if (mainHand.getItem() != Items.MACE) {
-            // Ищем булаву
+            // Если булавы нет, ищем её в инвентаре и свапаем
             int maceSlot = findMace(me);
             if (maceSlot != -1) {
                 int currentSlot = me.getInventory().selectedSlot;
-                // Свапаем булаву в текущий слот
                 client.interactionManager.clickSlot(me.playerScreenHandler.syncId, maceSlot, currentSlot, SlotActionType.SWAP, me);
                 client.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(currentSlot));
             }
             return; // Ждём следующего тика, чтобы ударить
         }
 
-        // 4. Если булава в руке и мы близко — бьём
-        if (dist <= 4.0) {
-            // Наводим камеру на цель
+        // 4. Мгновенное наведение и удар
+        if (dist <= 4.5) {
             Vec3d targetEye = target.getEyePos();
             Vec3d eye = me.getEyePos();
             double dx = targetEye.x - eye.x;
@@ -81,14 +87,16 @@ public class MaceAura {
             float targetYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
             float targetPitch = (float) -Math.toDegrees(Math.atan2(dy, horiz));
 
-            me.prevYaw = me.getYaw();
-            me.prevPitch = me.getPitch();
+            // МГНОВЕННЫЙ ПОВОРОТ КАМЕРЫ (телепортация без плавности)
             me.setYaw(targetYaw);
             me.setPitch(targetPitch);
+            me.prevYaw = targetYaw;
+            me.prevPitch = targetPitch;
 
-            // Бьём раз в секунду
+            // МГНОВЕННЫЙ УДАР
             long now = System.currentTimeMillis();
-            if (now - lastAttack >= 1000) {
+            // Задержка 500 мс, чтобы не спамить пакетами каждый кадр
+            if (now - lastAttack >= 500) {
                 client.interactionManager.attackEntity(me, target);
                 me.swingHand(Hand.MAIN_HAND);
                 lastAttack = now;
@@ -97,9 +105,11 @@ public class MaceAura {
     }
 
     private static int findMace(PlayerEntity player) {
+        // Ищем в хотбаре (0-8)
         for (int i = 0; i < 9; i++) {
             if (player.getInventory().getStack(i).getItem() == Items.MACE) return i;
         }
+        // Ищем в инвентаре (9-35)
         for (int i = 9; i < 36; i++) {
             if (player.getInventory().getStack(i).getItem() == Items.MACE) return i;
         }
