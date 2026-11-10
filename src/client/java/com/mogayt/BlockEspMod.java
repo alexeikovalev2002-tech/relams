@@ -194,9 +194,10 @@ public class BlockEspMod implements ClientModInitializer {
             AutoTotem.tick(client);
             MaceAura.tick(client);
             CrystalAura.tick(client);
+            AnchorAura.tick(client);
             
             // ВЫЗОВ НОВОГО МОДУЛЯ
-            AnchorAura.tick(client);
+            TriggerBot.tick(client); 
             
             if (client.player != null && client.player.age % 200 == 0) Config.save();
             if (client.world == null || client.player == null) return;
@@ -283,4 +284,4 @@ public class BlockEspMod implements ClientModInitializer {
             }
         }
     }
-}
+                              }
