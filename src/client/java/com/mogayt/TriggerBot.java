@@ -3,6 +3,7 @@ package com.mogayt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
@@ -18,23 +19,27 @@ public class TriggerBot {
     
     // Настройки атаки
     public static boolean onlyCrits = false;
-    public static double delayMin = 0.1; // Минимальная задержка в секундах
-    public static double delayMax = 0.3; // Максимальная задержка в секундах
+    public static double delayMin = 0.1;
+    public static double delayMax = 0.3;
     
     private static long lastAttackTime = 0;
-    private static long nextAttackDelay = 0; // Рандомная задержка для следующего удара
+    private static long nextAttackDelay = 0;
 
     public static void tick(MinecraftClient client) {
         if (!enabled || client.player == null || client.world == null) return;
         if (client.interactionManager == null) return;
         if (client.currentScreen != null) return;
 
-        // 1. Проверка на криты (если включено)
+        // 1. Проверка на криты (Точная ванильная проверка)
         if (onlyCrits) {
-            // Бьем только если падаем (fallDistance > 0) и не находимся на земле
-            if (client.player.fallDistance <= 0 || client.player.isOnGround()) {
-                return;
-            }
+            boolean canCrit = client.player.fallDistance > 0.0F 
+                    && !client.player.isOnGround() 
+                    && !client.player.isClimbing() 
+                    && !client.player.isTouchingWater() 
+                    && !client.player.hasVehicle() 
+                    && !client.player.hasStatusEffect(StatusEffects.BLINDNESS);
+            
+            if (!canCrit) return; // Если не падаем — не бьем
         }
 
         // 2. Проверяем, на что смотрит прицел
@@ -50,23 +55,25 @@ public class TriggerBot {
 
         if (isPlayer && !targetPlayers) return;
         if (isMob && !targetMobs) return;
-        if (!isPlayer && !isMob) return; // Игнорируем всё остальное (например, лодки)
+        if (!isPlayer && !isMob) return;
 
-        // 4. Проверка задержки (Рандом)
+        // 4. Проверка задержки
         long now = System.currentTimeMillis();
+        
+        // Если это первый удар, генерируем задержку сразу
+        if (nextAttackDelay == 0) {
+            nextAttackDelay = (long) ((delayMin + Math.random() * (delayMax - delayMin)) * 1000);
+        }
+
         if (now - lastAttackTime >= nextAttackDelay) {
-            // Наносим удар
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
             
-            // Генерируем новую задержку на следующий удар
             lastAttackTime = now;
             
-            // Защита от дурака: если min > max, меняем их местами
+            // Генерируем новую задержку на следующий удар
             double min = Math.min(delayMin, delayMax);
             double max = Math.max(delayMin, delayMax);
-            
-            // Рандомное число от min до max (переводим в миллисекунды)
             double randomSec = min + (Math.random() * (max - min));
             nextAttackDelay = (long) (randomSec * 1000);
         }
