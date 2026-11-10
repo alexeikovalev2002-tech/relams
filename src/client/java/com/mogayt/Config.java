@@ -54,6 +54,13 @@ public class Config {
             w.println("anchorAura=" + AnchorAura.enabled);
             w.println("anchorAuraRange=" + AnchorAura.range);
 
+            w.println("triggerBot=" + TriggerBot.enabled);
+            w.println("triggerPlayers=" + TriggerBot.targetPlayers);
+            w.println("triggerMobs=" + TriggerBot.targetMobs);
+            w.println("triggerCrits=" + TriggerBot.onlyCrits);
+            w.println("triggerDelayMin=" + TriggerBot.delayMin);
+            w.println("triggerDelayMax=" + TriggerBot.delayMax);
+
             w.println("fullbright=" + Fullbright.enabled);
             w.println("freecam=" + Freecam.enabled);
             w.println("optimizer=" + Optimizer.enabled);
@@ -70,6 +77,7 @@ public class Config {
             w.println("k.maceAura=" + KeyBinds.maceAuraKey);
             w.println("k.crystalAura=" + KeyBinds.crystalAuraKey);
             w.println("k.anchorAura=" + KeyBinds.anchorAuraKey);
+            w.println("k.triggerBot=" + KeyBinds.triggerBotKey);
             w.println("k.fullbright=" + KeyBinds.fullbrightKey);
             w.println("k.freecam=" + KeyBinds.freecamKey);
             w.println("k.optimizer=" + KeyBinds.optimizerKey);
@@ -134,6 +142,13 @@ public class Config {
                     else if (k.equals("anchorAura")) AnchorAura.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("anchorAuraRange")) AnchorAura.range = Double.parseDouble(v);
 
+                    else if (k.equals("triggerBot")) TriggerBot.enabled = Boolean.parseBoolean(v);
+                    else if (k.equals("triggerPlayers")) TriggerBot.targetPlayers = Boolean.parseBoolean(v);
+                    else if (k.equals("triggerMobs")) TriggerBot.targetMobs = Boolean.parseBoolean(v);
+                    else if (k.equals("triggerCrits")) TriggerBot.onlyCrits = Boolean.parseBoolean(v);
+                    else if (k.equals("triggerDelayMin")) TriggerBot.delayMin = Double.parseDouble(v);
+                    else if (k.equals("triggerDelayMax")) TriggerBot.delayMax = Double.parseDouble(v);
+
                     else if (k.equals("fullbright")) Fullbright.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("freecam")) Freecam.enabled = Boolean.parseBoolean(v);
                     else if (k.equals("optimizer")) Optimizer.enabled = Boolean.parseBoolean(v);
@@ -150,6 +165,7 @@ public class Config {
                     else if (k.equals("k.maceAura")) KeyBinds.maceAuraKey = Integer.parseInt(v);
                     else if (k.equals("k.crystalAura")) KeyBinds.crystalAuraKey = Integer.parseInt(v);
                     else if (k.equals("k.anchorAura")) KeyBinds.anchorAuraKey = Integer.parseInt(v);
+                    else if (k.equals("k.triggerBot")) KeyBinds.triggerBotKey = Integer.parseInt(v);
                     else if (k.equals("k.fullbright")) KeyBinds.fullbrightKey = Integer.parseInt(v);
                     else if (k.equals("k.freecam")) KeyBinds.freecamKey = Integer.parseInt(v);
                     else if (k.equals("k.optimizer")) KeyBinds.optimizerKey = Integer.parseInt(v);
@@ -177,4 +193,4 @@ public class Config {
             ChatBind.binds.addAll(loaded);
         }
     }
-}
+                                                                                              }
