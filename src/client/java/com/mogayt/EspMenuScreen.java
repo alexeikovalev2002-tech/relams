@@ -24,8 +24,15 @@ public class EspMenuScreen extends Screen {
     private int trjX, trjY, trjW, trjH;
     private int cncX, cncY, cncW, cncH;
 
-    // Переменная для хранения текущей прокрутки
+    // Настройки скролла и ползунка
     private double scrollOffset = 0;
+    private double maxScroll = 0;
+    private int scrollbarX, scrollbarY, scrollbarW, scrollbarH;
+    private boolean isDragging = false;
+
+    // Общая высота контента (от первой кнопки до низа последней)
+    private static final int TOTAL_CONTENT_HEIGHT = 304;
+    private static final int VIEW_HEIGHT_MARGIN = 50; // Отступы сверху и снизу экрана
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -37,8 +44,21 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
-        // Базовый Y, который смещается в зависимости от scrollOffset
-        int startY = cy - 140 + (int) scrollOffset;
+        // Вычисляем область просмотра и максимальный скролл
+        int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
+        maxScroll = Math.max(0, TOTAL_CONTENT_HEIGHT - viewHeight);
+
+        // Ограничиваем скролл
+        if (scrollOffset < 0) scrollOffset = 0;
+        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+
+        int startY = (cy - 140) - (int) scrollOffset;
+        
+        // Настройки ползунка
+        scrollbarX = this.width / 2 + 105;
+        scrollbarY = cy - 140;
+        scrollbarW = 6;
+        scrollbarH = viewHeight;
 
         espX = x; espY = startY; espW = w; espH = h;
         chestX = x; chestY = startY + 18; chestW = w; chestH = h;
@@ -137,65 +157,81 @@ public class EspMenuScreen extends Screen {
                 (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; Notification.show("CameraNoClip", CameraNoClip.enabled); b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
         ).dimensions(cncX, cncY, w, h).build());
 
-        // Кнопка "Закрыть" тоже скроллится вместе со всеми
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
         ).dimensions(x, startY + 288, w, h).build());
     }
 
-    // ==== НОВЫЙ МЕТОД ДЛЯ ПРОКРУТКИ ====
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        scrollOffset += verticalAmount * 15; // Скорость прокрутки (15 пикселей за тик)
-
-        int cy = this.height / 2;
-        int startY = cy - 140;
-        int contentHeight = 288; // Высота от первой кнопки до последней (Закрыть)
-        int bottomMargin = 40;   // Отступ от низа экрана
-
-        // Вычисляем минимально допустимый сдвиг (чтобы последняя кнопка была видна)
-        double minScroll = (this.height - bottomMargin) - (startY + contentHeight);
+        scrollOffset -= verticalAmount * 15; // Крутим колесико
         
-        // Ограничиваем прокрутку
-        if (minScroll > 0) minScroll = 0; // Если всё влезает на экран, скроллить вниз некуда
-        if (scrollOffset > 0) scrollOffset = 0; // Вверх за пределы экрана не уходим
-        if (scrollOffset < minScroll) scrollOffset = minScroll; // Вниз дальше контента не уходим
-
-        // Перестраиваем меню с новыми координатами
+        if (scrollOffset < 0) scrollOffset = 0;
+        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+        
         this.clearAndInit();
         return true;
     }
 
-    private String getEspLabel() {
-        return "ESP [" + BlockEspMod.getOreName() + "]: " + (BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ");
-    }
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Проверяем клик по ползунку
+        if (button == 0 && maxScroll > 0) {
+            int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
+            int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
+            int thumbY = scrollbarY + (int) ((scrollOffset / maxScroll) * (scrollbarH - thumbHeight));
 
-    private String getChestLabel() {
-        return "ChestESP [" + BlockEspMod.getChestName() + "]: " + (BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ");
+            if (mouseX >= scrollbarX && mouseX <= scrollbarX + scrollbarW && mouseY >= thumbY && mouseY <= thumbY + thumbHeight) {
+                isDragging = true;
+                return true;
+            }
+        }
+
+        if (button == 1) {
+            if (inside(mouseX, mouseY, espX, espY, espW, espH)) { if (this.client != null) this.client.setScreen(new OreSelectScreen()); return true; }
+            if (inside(mouseX, mouseY, chestX, chestY, chestW, chestH)) { if (this.client != null) this.client.setScreen(new ChestSelectScreen()); return true; }
+            if (inside(mouseX, mouseY, playerX, playerY, playerW, playerH)) { if (this.client != null) this.client.setScreen(new PlayerEspScreen()); return true; }
+            if (inside(mouseX, mouseY, itemX, itemY, itemW, itemH)) { if (this.client != null) this.client.setScreen(new ItemEspScreen()); return true; }
+            if (inside(mouseX, mouseY, chatX, chatY, chatW, chatH)) { if (this.client != null) this.client.setScreen(new ChatBindScreen()); return true; }
+            if (inside(mouseX, mouseY, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
+            if (inside(mouseX, mouseY, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
+            if (inside(mouseX, mouseY, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
+            if (inside(mouseX, mouseY, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
+            if (inside(mouseX, mouseY, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
+            if (inside(mouseX, mouseY, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
+            if (inside(mouseX, mouseY, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
+            if (inside(mouseX, mouseY, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
+            if (inside(mouseX, mouseY, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
+            if (inside(mouseX, mouseY, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
+            if (inside(mouseX, mouseY, cncX, cncY, cncW, cncH)) { if (this.client != null) this.client.setScreen(new CameraNoClipScreen()); return true; }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
-        if (button == 1) {
-            if (inside(mx, my, espX, espY, espW, espH)) { if (this.client != null) this.client.setScreen(new OreSelectScreen()); return true; }
-            if (inside(mx, my, chestX, chestY, chestW, chestH)) { if (this.client != null) this.client.setScreen(new ChestSelectScreen()); return true; }
-            if (inside(mx, my, playerX, playerY, playerW, playerH)) { if (this.client != null) this.client.setScreen(new PlayerEspScreen()); return true; }
-            if (inside(mx, my, itemX, itemY, itemW, itemH)) { if (this.client != null) this.client.setScreen(new ItemEspScreen()); return true; }
-            if (inside(mx, my, chatX, chatY, chatW, chatH)) { if (this.client != null) this.client.setScreen(new ChatBindScreen()); return true; }
-            if (inside(mx, my, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
-            if (inside(mx, my, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
-            if (inside(mx, my, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
-            if (inside(mx, my, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
-            if (inside(mx, my, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
-            if (inside(mx, my, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
-            if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
-            if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
-            if (inside(mx, my, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
-            if (inside(mx, my, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
-            if (inside(mx, my, cncX, cncY, cncW, cncH)) { if (this.client != null) this.client.setScreen(new CameraNoClipScreen()); return true; }
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (isDragging && button == 0) {
+            int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
+            int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
+            double scrollableTrack = scrollbarH - thumbHeight;
+
+            // Центрируем ползунок относительно курсора мыши
+            double ratio = (mouseY - scrollbarY - (thumbHeight / 2.0)) / scrollableTrack;
+            if (ratio < 0) ratio = 0;
+            if (ratio > 1) ratio = 1;
+
+            scrollOffset = ratio * maxScroll;
+            this.clearAndInit();
+            return true;
         }
-        return super.mouseClicked(mx, my, button);
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) isDragging = false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     private boolean inside(double mx, double my, int x, int y, int w, int h) {
@@ -205,11 +241,31 @@ public class EspMenuScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
+        
+        // Рисуем ползунок (только если есть что скроллить)
+        if (maxScroll > 0) {
+            // Фон ползунка
+            context.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarW, scrollbarY + scrollbarH, 0x55000000);
+            
+            // Сам ползунок
+            int thumbHeight = Math.max(20, (int) ((float) scrollbarH * scrollbarH / TOTAL_CONTENT_HEIGHT));
+            int thumbY = scrollbarY + (int) ((scrollOffset / maxScroll) * (scrollbarH - thumbHeight));
+            context.fill(scrollbarX, thumbY, scrollbarX + scrollbarW, thumbY + thumbHeight, 0xFFAAAAAA);
+        }
+
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 5, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопкам — настройки (Листай вниз)"),
+                Text.literal("ПКМ по кнопкам — настройки"),
                 this.width / 2, 18, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    private String getEspLabel() {
+        return "ESP [" + BlockEspMod.getOreName() + "]: " + (BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ");
+    }
+
+    private String getChestLabel() {
+        return "ChestESP [" + BlockEspMod.getChestName() + "]: " + (BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ");
     }
 
     @Override
