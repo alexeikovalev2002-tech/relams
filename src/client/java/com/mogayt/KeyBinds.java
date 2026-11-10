@@ -12,19 +12,20 @@ public class KeyBinds {
     public static int aimBotKey = -1;
     public static int maceAuraKey = -1;
     public static int crystalAuraKey = -1; 
-    public static int anchorAuraKey = -1; // Новая клавиша
+    public static int anchorAuraKey = -1; 
+    public static int triggerBotKey = -1; // Новая клавиша
     public static int fullbrightKey = -1;
     public static int freecamKey = -1;
     public static int optimizerKey = -1;
     public static int trajectoryKey = -1;
 
-    // Увеличили массив до 13
-    private static final boolean[] wasPressed = new boolean[13];
+    // Увеличили массив до 14
+    private static final boolean[] wasPressed = new boolean[14];
 
     public static void tick(MinecraftClient client) {
         if (client.getWindow() == null) return;
         if (client.currentScreen != null) {
-            for (int i = 0; i < 13; i++) wasPressed[i] = true;
+            for (int i = 0; i < 14; i++) wasPressed[i] = true;
             return;
         }
         long h = client.getWindow().getHandle();
@@ -37,7 +38,8 @@ public class KeyBinds {
         if (check(h, 5, aimBotKey)) { AimBot.enabled = !AimBot.enabled; Notification.show("AimBot", AimBot.enabled); }
         if (check(h, 6, maceAuraKey)) { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); }
         if (check(h, 11, crystalAuraKey)) { CrystalAura.enabled = !CrystalAura.enabled; Notification.show("CrystalAura", CrystalAura.enabled); }
-        if (check(h, 12, anchorAuraKey)) { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); } // Новая проверка
+        if (check(h, 12, anchorAuraKey)) { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); }
+        if (check(h, 13, triggerBotKey)) { TriggerBot.enabled = !TriggerBot.enabled; Notification.show("TriggerBot", TriggerBot.enabled); } // Новая проверка
         
         if (check(h, 7, fullbrightKey)) { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); }
         if (check(h, 8, freecamKey)) { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); Notification.show("Freecam", Freecam.enabled); }
