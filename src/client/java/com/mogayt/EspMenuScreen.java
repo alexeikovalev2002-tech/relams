@@ -17,12 +17,15 @@ public class EspMenuScreen extends Screen {
     private int totemX, totemY, totemW, totemH;
     private int maceX, maceY, maceW, maceH;
     private int crystalX, crystalY, crystalW, crystalH;
-    private int anchorX, anchorY, anchorW, anchorH; // Новая кнопка
+    private int anchorX, anchorY, anchorW, anchorH;
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
     private int trjX, trjY, trjW, trjH;
     private int cncX, cncY, cncW, cncH;
+
+    // Переменная для хранения текущей прокрутки
+    private double scrollOffset = 0;
 
     public EspMenuScreen() {
         super(Text.literal("Mog Mod Menu"));
@@ -34,22 +37,25 @@ public class EspMenuScreen extends Screen {
         int w = 200, h = 16;
         int x = this.width / 2 - 100;
 
-        espX = x; espY = cy - 140; espW = w; espH = h;
-        chestX = x; chestY = cy - 122; chestW = w; chestH = h;
-        playerX = x; playerY = cy - 104; playerW = w; playerH = h;
-        itemX = x; itemY = cy - 86; itemW = w; itemH = h;
-        chatX = x; chatY = cy - 68; chatW = w; chatH = h;
-        aimX = x; aimY = cy - 50; aimW = w; aimH = h;
-        botX = x; botY = cy - 32; botW = w; botH = h;
-        totemX = x; totemY = cy - 14; totemW = w; totemH = h;
-        maceX = x; maceY = cy + 4; maceW = w; maceH = h;
-        crystalX = x; crystalY = cy + 22; crystalW = w; crystalH = h;
-        anchorX = x; anchorY = cy + 40; anchorW = w; anchorH = h; // Сдвинули вниз
-        fbX = x; fbY = cy + 58; fbW = w; fbH = h;
-        fcX = x; fcY = cy + 76; fcW = w; fcH = h;
-        optX = x; optY = cy + 94; optW = w; optH = h;
-        trjX = x; trjY = cy + 112; trjW = w; trjH = h;
-        cncX = x; cncY = cy + 130; cncW = w; cncH = h;
+        // Базовый Y, который смещается в зависимости от scrollOffset
+        int startY = cy - 140 + (int) scrollOffset;
+
+        espX = x; espY = startY; espW = w; espH = h;
+        chestX = x; chestY = startY + 18; chestW = w; chestH = h;
+        playerX = x; playerY = startY + 36; playerW = w; playerH = h;
+        itemX = x; itemY = startY + 54; itemW = w; itemH = h;
+        chatX = x; chatY = startY + 72; chatW = w; chatH = h;
+        aimX = x; aimY = startY + 90; aimW = w; aimH = h;
+        botX = x; botY = startY + 108; botW = w; botH = h;
+        totemX = x; totemY = startY + 126; totemW = w; totemH = h;
+        maceX = x; maceY = startY + 144; maceW = w; maceH = h;
+        crystalX = x; crystalY = startY + 162; crystalW = w; crystalH = h;
+        anchorX = x; anchorY = startY + 180; anchorW = w; anchorH = h;
+        fbX = x; fbY = startY + 198; fbW = w; fbH = h;
+        fcX = x; fcY = startY + 216; fcW = w; fcH = h;
+        optX = x; optY = startY + 234; optW = w; optH = h;
+        trjX = x; trjY = startY + 252; trjW = w; trjH = h;
+        cncX = x; cncY = startY + 270; cncW = w; cncH = h;
 
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(getEspLabel()),
@@ -101,7 +107,6 @@ public class EspMenuScreen extends Screen {
                 (b) -> { CrystalAura.enabled = !CrystalAura.enabled; Notification.show("CrystalAura", CrystalAura.enabled); b.setMessage(Text.literal(CrystalAura.enabled ? "CrystalAura: ВКЛ" : "CrystalAura: ВЫКЛ")); }
         ).dimensions(crystalX, crystalY, w, h).build());
 
-        // Новая кнопка AnchorAura
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ"),
                 (b) -> { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); b.setMessage(Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ")); }
@@ -132,10 +137,34 @@ public class EspMenuScreen extends Screen {
                 (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; Notification.show("CameraNoClip", CameraNoClip.enabled); b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
         ).dimensions(cncX, cncY, w, h).build());
 
+        // Кнопка "Закрыть" тоже скроллится вместе со всеми
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal("Закрыть"),
                 (b) -> this.close()
-        ).dimensions(x, cy + 154, w, h).build()); // Сдвинули кнопку Закрыть
+        ).dimensions(x, startY + 288, w, h).build());
+    }
+
+    // ==== НОВЫЙ МЕТОД ДЛЯ ПРОКРУТКИ ====
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        scrollOffset += verticalAmount * 15; // Скорость прокрутки (15 пикселей за тик)
+
+        int cy = this.height / 2;
+        int startY = cy - 140;
+        int contentHeight = 288; // Высота от первой кнопки до последней (Закрыть)
+        int bottomMargin = 40;   // Отступ от низа экрана
+
+        // Вычисляем минимально допустимый сдвиг (чтобы последняя кнопка была видна)
+        double minScroll = (this.height - bottomMargin) - (startY + contentHeight);
+        
+        // Ограничиваем прокрутку
+        if (minScroll > 0) minScroll = 0; // Если всё влезает на экран, скроллить вниз некуда
+        if (scrollOffset > 0) scrollOffset = 0; // Вверх за пределы экрана не уходим
+        if (scrollOffset < minScroll) scrollOffset = minScroll; // Вниз дальше контента не уходим
+
+        // Перестраиваем меню с новыми координатами
+        this.clearAndInit();
+        return true;
     }
 
     private String getEspLabel() {
@@ -159,7 +188,6 @@ public class EspMenuScreen extends Screen {
             if (inside(mx, my, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
             if (inside(mx, my, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
             if (inside(mx, my, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
-            // ПКМ по AnchorAura
             if (inside(mx, my, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
             if (inside(mx, my, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mx, my, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
@@ -179,7 +207,7 @@ public class EspMenuScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 5, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопкам — настройки"),
+                Text.literal("ПКМ по кнопкам — настройки (Листай вниз)"),
                 this.width / 2, 18, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
