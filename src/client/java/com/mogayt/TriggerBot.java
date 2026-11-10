@@ -3,13 +3,9 @@ package com.mogayt;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 
 public class TriggerBot {
 
@@ -30,25 +26,21 @@ public class TriggerBot {
         if (client.interactionManager == null) return;
         if (client.currentScreen != null) return;
 
-        // 1. ПРОВЕРКА КРИТА (Точная ванильная копия)
+        // === ПРОВЕРКА КРИТОВ ===
         if (onlyCrits) {
-            boolean canCrit = client.player.fallDistance > 0.0F 
-                    && !client.player.isOnGround() 
-                    && !client.player.isClimbing() 
-                    && !client.player.isTouchingWater() 
-                    && !client.player.hasStatusEffect(StatusEffects.BLINDNESS) 
-                    && !client.player.hasVehicle()
-                    && !client.player.isSprinting(); // Спринт отменяет крит!
-            
-            if (!canCrit) return; 
+            // Если стоим на земле — крита не будет
+            if (client.player.isOnGround()) return;
+            // Если не падаем (скорость по Y не отрицательная) — крита не будет
+            if (client.player.getVelocity().y >= -0.05) return;
+            // В воде, на лестнице, в лодке — крита не будет
+            if (client.player.isTouchingWater() || client.player.isClimbing() || client.player.hasVehicle()) return;
+        } else {
+            // Для обычного режима проверяем кулдаун атаки
+            if (client.player.getAttackCooldownProgress(0.0f) < 0.9f) return;
         }
 
-        // 2. ПРОВЕРКА КУЛДАУНА АТАКИ
-        // Если полоска атаки не заполнена хотя бы на 90%, удар не пройдет
-        if (client.player.getAttackCooldownProgress(0.5f) < 0.9f) return;
-
-        // 3. ПОИСК ЦЕЛИ
-        LivingEntity target = getTarget(client);
+        // === ПОИСК ЦЕЛИ (без привязки к камере) ===
+        LivingEntity target = getClosestTarget(client);
         if (target == null) return;
 
         boolean isPlayer = target instanceof PlayerEntity;
@@ -58,16 +50,20 @@ public class TriggerBot {
         if (isMob && !targetMobs) return;
         if (!isPlayer && !isMob) return;
 
-        // 4. ЗАДЕРЖКА
+        // === УДАР ===
         long now = System.currentTimeMillis();
-        
-        // Если включены криты, мы бьем моментально, как только кулдаун готов.
-        // Иначе используем рандомную задержку из настроек.
-        long currentDelay = onlyCrits ? 0 : nextAttackDelay; 
+        long currentDelay = onlyCrits ? 50 : nextAttackDelay;
 
         if (now - lastAttackTime >= currentDelay) {
+            // Временно отключаем спринт, чтобы крит прошел
+            boolean wasSprinting = client.player.isSprinting();
+            if (wasSprinting) client.player.setSprinting(false);
+            
             client.interactionManager.attackEntity(client.player, target);
             client.player.swingHand(Hand.MAIN_HAND);
+            
+            if (wasSprinting) client.player.setSprinting(true);
+            
             lastAttackTime = now;
             
             double min = Math.min(delayMin, delayMax);
@@ -77,28 +73,20 @@ public class TriggerBot {
         }
     }
 
-    private static LivingEntity getTarget(MinecraftClient client) {
-        // Сначала проверяем стандартный прицел
-        if (client.crosshairTarget instanceof EntityHitResult hitResult) {
-            if (hitResult.getEntity() instanceof LivingEntity living && living != client.player && living.isAlive()) {
-                return living;
-            }
-        }
-
-        // Если прицел промахнулся (например, из-за покачивания камеры при прыжке),
-        // проверяем хитбоксы сущностей напрямую лучом из глаз
-        Vec3d eyePos = client.player.getEyePos();
-        Vec3d reachVec = client.player.getRotationVector().multiply(3.2); // Ванильная дистанция ~3 блока
-        Vec3d endPos = eyePos.add(reachVec);
-
-        for (Entity entity : client.world.getOtherEntities(client.player, client.player.getBoundingBox().expand(3.5))) {
-            if (entity instanceof LivingEntity living && living.isAlive()) {
-                // Проверяем, пересекает ли луч хитбокс моба
-                if (living.getBoundingBox().raycast(eyePos, endPos).isPresent()) {
-                    return living;
+    // Поиск ближайшего моба/игрока в радиусе 4 блоков
+    private static LivingEntity getClosestTarget(MinecraftClient client) {
+        LivingEntity closest = null;
+        double closestDist = Double.MAX_VALUE;
+        
+        for (Entity entity : client.world.getOtherEntities(client.player, client.player.getBoundingBox().expand(4.0))) {
+            if (entity instanceof LivingEntity living && living != client.player && living.isAlive()) {
+                double dist = client.player.squaredDistanceTo(living);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = living;
                 }
             }
         }
-        return null;
+        return closest;
     }
 }
