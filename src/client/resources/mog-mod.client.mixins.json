@@ -7,8 +7,6 @@
     "ClientPlayerEntityMixin",
     "RenderOptimizationMixin",
     "CameraNoClipMixin",
-    "ChatScreenMixin",
-    "ScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
