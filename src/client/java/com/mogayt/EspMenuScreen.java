@@ -2,302 +2,217 @@ package com.mogayt;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class EspMenuScreen extends Screen {
 
-    private int espX, espY, espW, espH;
-    private int chestX, chestY, chestW, chestH;
-    private int playerX, playerY, playerW, playerH;
-    private int itemX, itemY, itemW, itemH;
-    private int chatX, chatY, chatW, chatH;
-    private int aimX, aimY, aimW, aimH;
-    private int botX, botY, botW, botH;
-    private int totemX, totemY, totemW, totemH;
-    private int maceX, maceY, maceW, maceH;
-    private int crystalX, crystalY, crystalW, crystalH;
-    private int anchorX, anchorY, anchorW, anchorH;
-    private int triggerX, triggerY, triggerW, triggerH;
-    private int fbX, fbY, fbW, fbH;
-    private int fcX, fcY, fcW, fcH;
-    private int optX, optY, optW, optH;
-    private int trjX, trjY, trjW, trjH;
-    private int cncX, cncY, cncW, cncH;
+    // Цветовая схема (Pulse Visuals style)
+    private static final int BG_COLOR = new Color(10, 10, 15, 230).getRGB();
+    private static final int SIDEBAR_COLOR = new Color(15, 15, 20, 255).getRGB();
+    private static final int ACCENT_COLOR = new Color(150, 50, 255).getRGB(); // Фиолетовый
+    private static final int TEXT_COLOR = new Color(220, 220, 220).getRGB();
+    private static final int TEXT_DISABLED = new Color(120, 120, 120).getRGB();
+    private static final int HOVER_COLOR = new Color(255, 255, 255, 30).getRGB();
+    private static final int ENABLED_BG = new Color(150, 50, 255, 60).getRGB();
 
-    private double scrollOffset = 0;
-    private double maxScroll = 0;
-    private int scrollbarX, scrollbarY, scrollbarW, scrollbarH;
-    private boolean isDragging = false;
+    private int panelX, panelY, panelW, panelH;
+    private Category currentCategory = Category.COMBAT;
 
-    // НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ПЕРЕТАСКИВАНИЯ HUD
-    private boolean draggingHud = false;
-    private double hudDragOffsetX = 0;
-    private double hudDragOffsetY = 0;
-
-    private static final int TOTAL_CONTENT_HEIGHT = 322;
-    private static final int VIEW_HEIGHT_MARGIN = 50;
+    // Список модулей для текущей вкладки
+    private final List<ModuleEntry> currentModules = new ArrayList<>();
 
     public EspMenuScreen() {
-        super(Text.literal("Mog Mod Menu"));
+        super(Text.literal("Mog Client"));
+    }
+
+    private enum Category {
+        COMBAT("Combat"),
+        RENDER("Render"),
+        PLAYER("Player"),
+        MISC("Misc");
+
+        public final String name;
+        Category(String name) { this.name = name; }
     }
 
     @Override
     protected void init() {
-        int cy = this.height / 2;
-        int w = 200, h = 16;
-        int x = this.width / 2 - 100;
+        // Размеры окна
+        panelW = 360;
+        panelH = 240;
+        panelX = (this.width - panelW) / 2;
+        panelY = (this.height - panelH) / 2;
 
-        int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
-        maxScroll = Math.max(0, TOTAL_CONTENT_HEIGHT - viewHeight);
+        updateModuleList();
+    }
 
-        if (scrollOffset < 0) scrollOffset = 0;
-        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
-
-        int startY = (cy - 140) - (int) scrollOffset;
+    private void updateModuleList() {
+        currentModules.clear();
         
-        scrollbarX = this.width / 2 + 105;
-        scrollbarY = cy - 140;
-        scrollbarW = 6;
-        scrollbarH = viewHeight;
-
-        espX = x; espY = startY; espW = w; espH = h;
-        chestX = x; chestY = startY + 18; chestW = w; chestH = h;
-        playerX = x; playerY = startY + 36; playerW = w; playerH = h;
-        itemX = x; itemY = startY + 54; itemW = w; itemH = h;
-        chatX = x; chatY = startY + 72; chatW = w; chatH = h;
-        aimX = x; aimY = startY + 90; aimW = w; aimH = h;
-        botX = x; botY = startY + 108; botW = w; botH = h;
-        totemX = x; totemY = startY + 126; totemW = w; totemH = h;
-        maceX = x; maceY = startY + 144; maceW = w; maceH = h;
-        crystalX = x; crystalY = startY + 162; crystalW = w; crystalH = h;
-        anchorX = x; anchorY = startY + 180; anchorW = w; anchorH = h;
-        triggerX = x; triggerY = startY + 198; triggerW = w; triggerH = h;
-        fbX = x; fbY = startY + 216; fbW = w; fbH = h;
-        fcX = x; fcY = startY + 234; fcW = w; fcH = h;
-        optX = x; optY = startY + 252; optW = w; optH = h;
-        trjX = x; trjY = startY + 270; trjW = w; trjH = h;
-        cncX = x; cncY = startY + 288; cncW = w; cncH = h;
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(getEspLabel()),
-                (b) -> { BlockEspMod.espEnabled = !BlockEspMod.espEnabled; Notification.show("ESP", BlockEspMod.espEnabled); b.setMessage(Text.literal(getEspLabel())); }
-        ).dimensions(espX, espY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(getChestLabel()),
-                (b) -> { BlockEspMod.chestEspEnabled = !BlockEspMod.chestEspEnabled; Notification.show("ChestESP", BlockEspMod.chestEspEnabled); b.setMessage(Text.literal(getChestLabel())); }
-        ).dimensions(chestX, chestY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ"),
-                (b) -> { BlockEspMod.playerEspEnabled = !BlockEspMod.playerEspEnabled; Notification.show("PlayerESP", BlockEspMod.playerEspEnabled); b.setMessage(Text.literal(BlockEspMod.playerEspEnabled ? "PlayerESP: ВКЛ" : "PlayerESP: ВЫКЛ")); }
-        ).dimensions(playerX, playerY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ"),
-                (b) -> { BlockEspMod.itemEspEnabled = !BlockEspMod.itemEspEnabled; Notification.show("ItemESP", BlockEspMod.itemEspEnabled); b.setMessage(Text.literal(BlockEspMod.itemEspEnabled ? "ItemESP: ВКЛ" : "ItemESP: ВЫКЛ")); }
-        ).dimensions(itemX, itemY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("ChatBind [" + ChatBind.binds.size() + " шт]"),
-                (b) -> {}
-        ).dimensions(chatX, chatY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ"),
-                (b) -> { AimMobs.enabled = !AimMobs.enabled; Notification.show("AimMobs", AimMobs.enabled); b.setMessage(Text.literal(AimMobs.enabled ? "AimMobs: ВКЛ" : "AimMobs: ВЫКЛ")); }
-        ).dimensions(aimX, aimY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ"),
-                (b) -> { AimBot.enabled = !AimBot.enabled; Notification.show("AimBot", AimBot.enabled); b.setMessage(Text.literal(AimBot.enabled ? "AimBot: ВКЛ" : "AimBot: ВЫКЛ")); }
-        ).dimensions(botX, botY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ"),
-                (b) -> { AutoTotem.enabled = !AutoTotem.enabled; Notification.show("AutoTotem", AutoTotem.enabled); b.setMessage(Text.literal(AutoTotem.enabled ? "AutoTotem: ВКЛ" : "AutoTotem: ВЫКЛ")); }
-        ).dimensions(totemX, totemY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ"),
-                (b) -> { MaceAura.enabled = !MaceAura.enabled; Notification.show("MaceAura", MaceAura.enabled); b.setMessage(Text.literal(MaceAura.enabled ? "MaceAura: ВКЛ" : "MaceAura: ВЫКЛ")); }
-        ).dimensions(maceX, maceY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(CrystalAura.enabled ? "CrystalAura: ВКЛ" : "CrystalAura: ВЫКЛ"),
-                (b) -> { CrystalAura.enabled = !CrystalAura.enabled; Notification.show("CrystalAura", CrystalAura.enabled); b.setMessage(Text.literal(CrystalAura.enabled ? "CrystalAura: ВКЛ" : "CrystalAura: ВЫКЛ")); }
-        ).dimensions(crystalX, crystalY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ"),
-                (b) -> { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); b.setMessage(Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ")); }
-        ).dimensions(anchorX, anchorY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ"),
-                (b) -> { TriggerBot.enabled = !TriggerBot.enabled; Notification.show("TriggerBot", TriggerBot.enabled); b.setMessage(Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ")); }
-        ).dimensions(triggerX, triggerY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ"),
-                (b) -> { Fullbright.enabled = !Fullbright.enabled; Notification.show("Fullbright", Fullbright.enabled); b.setMessage(Text.literal(Fullbright.enabled ? "Fullbright: ВКЛ" : "Fullbright: ВЫКЛ")); }
-        ).dimensions(fbX, fbY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ"),
-                (b) -> { Freecam.enabled = !Freecam.enabled; if (Freecam.enabled) Freecam.onEnable(); Notification.show("Freecam", Freecam.enabled); b.setMessage(Text.literal(Freecam.enabled ? "Freecam: ВКЛ" : "Freecam: ВЫКЛ")); }
-        ).dimensions(fcX, fcY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ"),
-                (b) -> { Optimizer.enabled = !Optimizer.enabled; Notification.show("Fix Lag", Optimizer.enabled); b.setMessage(Text.literal(Optimizer.enabled ? "Fix Lag: ВКЛ" : "Fix Lag: ВЫКЛ")); }
-        ).dimensions(optX, optY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ"),
-                (b) -> { TrajectoryPredictor.enabled = !TrajectoryPredictor.enabled; Notification.show("Trajectory", TrajectoryPredictor.enabled); b.setMessage(Text.literal(TrajectoryPredictor.enabled ? "Trajectory: ВКЛ" : "Trajectory: ВЫКЛ")); }
-        ).dimensions(trjX, trjY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ"),
-                (b) -> { CameraNoClip.enabled = !CameraNoClip.enabled; Notification.show("CameraNoClip", CameraNoClip.enabled); b.setMessage(Text.literal(CameraNoClip.enabled ? "CameraNoClip: ВКЛ" : "CameraNoClip: ВЫКЛ")); }
-        ).dimensions(cncX, cncY, w, h).build());
-
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("Закрыть"),
-                (b) -> this.close()
-        ).dimensions(x, startY + 306, w, h).build());
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        scrollOffset -= verticalAmount * 15; 
-        if (scrollOffset < 0) scrollOffset = 0;
-        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
-        this.clearAndInit();
-        return true;
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // === 1. ПРОВЕРКА КЛИКА ПО HUD (ПЕРЕТАСКИВАНИЕ) ===
-        if (button == 0) {
-            if (mouseX >= HudRenderer.hudX && mouseX <= HudRenderer.hudX + 110 && 
-                mouseY >= HudRenderer.hudY && mouseY <= HudRenderer.hudY + 40) {
-                draggingHud = true;
-                hudDragOffsetX = mouseX - HudRenderer.hudX;
-                hudDragOffsetY = mouseY - HudRenderer.hudY;
-                return true; // Блокируем клик, чтобы он не нажал кнопки под HUD
-            }
+        switch (currentCategory) {
+            case COMBAT:
+                currentModules.add(new ModuleEntry("AimBot", () -> AimBot.enabled, v -> AimBot.enabled = v, () -> client.setScreen(new AimBotScreen())));
+                currentModules.add(new ModuleEntry("AimMobs", () -> AimMobs.enabled, v -> AimMobs.enabled = v, () -> client.setScreen(new AimMobsScreen())));
+                currentModules.add(new ModuleEntry("MaceAura", () -> MaceAura.enabled, v -> MaceAura.enabled = v, () -> client.setScreen(new MaceAuraScreen())));
+                currentModules.add(new ModuleEntry("CrystalAura", () -> CrystalAura.enabled, v -> CrystalAura.enabled = v, () -> client.setScreen(new CrystalAuraScreen())));
+                currentModules.add(new ModuleEntry("AnchorAura", () -> AnchorAura.enabled, v -> AnchorAura.enabled = v, () -> client.setScreen(new AnchorAuraScreen())));
+                currentModules.add(new ModuleEntry("TriggerBot", () -> TriggerBot.enabled, v -> TriggerBot.enabled = v, () -> client.setScreen(new TriggerBotScreen())));
+                break;
+            case RENDER:
+                currentModules.add(new ModuleEntry("BlockESP", () -> BlockEspMod.espEnabled, v -> BlockEspMod.espEnabled = v, () -> client.setScreen(new OreSelectScreen())));
+                currentModules.add(new ModuleEntry("ChestESP", () -> BlockEspMod.chestEspEnabled, v -> BlockEspMod.chestEspEnabled = v, () -> client.setScreen(new ChestSelectScreen())));
+                currentModules.add(new ModuleEntry("PlayerESP", () -> BlockEspMod.playerEspEnabled, v -> BlockEspMod.playerEspEnabled = v, () -> client.setScreen(new PlayerEspScreen())));
+                currentModules.add(new ModuleEntry("ItemESP", () -> BlockEspMod.itemEspEnabled, v -> BlockEspMod.itemEspEnabled = v, () -> client.setScreen(new ItemEspScreen())));
+                currentModules.add(new ModuleEntry("Fullbright", () -> Fullbright.enabled, v -> Fullbright.enabled = v, () -> client.setScreen(new FullbrightScreen())));
+                currentModules.add(new ModuleEntry("Trajectory", () -> TrajectoryPredictor.enabled, v -> TrajectoryPredictor.enabled = v, () -> client.setScreen(new TrajectoryScreen())));
+                currentModules.add(new ModuleEntry("CameraNoClip", () -> CameraNoClip.enabled, v -> CameraNoClip.enabled = v, () -> client.setScreen(new CameraNoClipScreen())));
+                currentModules.add(new ModuleEntry("Freecam", () -> Freecam.enabled, v -> { Freecam.enabled = v; if (v) Freecam.onEnable(); }, () -> client.setScreen(new FreecamScreen())));
+                break;
+            case PLAYER:
+                currentModules.add(new ModuleEntry("AutoTotem", () -> AutoTotem.enabled, v -> AutoTotem.enabled = v, () -> client.setScreen(new AutoTotemScreen())));
+                currentModules.add(new ModuleEntry("Fix Lag", () -> Optimizer.enabled, v -> Optimizer.enabled = v, () -> client.setScreen(new OptimizerScreen())));
+                break;
+            case MISC:
+                // Для ChatBind сделаем фейковый тумблер, так как это не модуль, а список
+                currentModules.add(new ModuleEntry("ChatBind (" + ChatBind.binds.size() + ")", () -> false, v -> {}, () -> client.setScreen(new ChatBindScreen())));
+                break;
         }
-
-        // === 2. ПРОВЕРКА КЛИКА ПО СКРОЛЛБАРУ ===
-        if (button == 0 && maxScroll > 0) {
-            int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
-            int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
-            int thumbY = scrollbarY + (int) ((scrollOffset / maxScroll) * (scrollbarH - thumbHeight));
-
-            if (mouseX >= scrollbarX && mouseX <= scrollbarX + scrollbarW && mouseY >= thumbY && mouseY <= thumbY + thumbHeight) {
-                isDragging = true;
-                return true;
-            }
-        }
-
-        // === 3. ПРОВЕРКА ПКМ (ОТКРЫТИЕ МЕНЮ) ===
-        if (button == 1) {
-            if (inside(mouseX, mouseY, espX, espY, espW, espH)) { if (this.client != null) this.client.setScreen(new OreSelectScreen()); return true; }
-            if (inside(mouseX, mouseY, chestX, chestY, chestW, chestH)) { if (this.client != null) this.client.setScreen(new ChestSelectScreen()); return true; }
-            if (inside(mouseX, mouseY, playerX, playerY, playerW, playerH)) { if (this.client != null) this.client.setScreen(new PlayerEspScreen()); return true; }
-            if (inside(mouseX, mouseY, itemX, itemY, itemW, itemH)) { if (this.client != null) this.client.setScreen(new ItemEspScreen()); return true; }
-            if (inside(mouseX, mouseY, chatX, chatY, chatW, chatH)) { if (this.client != null) this.client.setScreen(new ChatBindScreen()); return true; }
-            if (inside(mouseX, mouseY, aimX, aimY, aimW, aimH)) { if (this.client != null) this.client.setScreen(new AimMobsScreen()); return true; }
-            if (inside(mouseX, mouseY, botX, botY, botW, botH)) { if (this.client != null) this.client.setScreen(new AimBotScreen()); return true; }
-            if (inside(mouseX, mouseY, totemX, totemY, totemW, totemH)) { if (this.client != null) this.client.setScreen(new AutoTotemScreen()); return true; }
-            if (inside(mouseX, mouseY, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
-            if (inside(mouseX, mouseY, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
-            if (inside(mouseX, mouseY, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
-            if (inside(mouseX, mouseY, triggerX, triggerY, triggerW, triggerH)) { if (this.client != null) this.client.setScreen(new TriggerBotScreen()); return true; }
-            if (inside(mouseX, mouseY, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
-            if (inside(mouseX, mouseY, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
-            if (inside(mouseX, mouseY, optX, optY, optW, optH)) { if (this.client != null) this.client.setScreen(new OptimizerScreen()); return true; }
-            if (inside(mouseX, mouseY, trjX, trjY, trjW, trjH)) { if (this.client != null) this.client.setScreen(new TrajectoryScreen()); return true; }
-            if (inside(mouseX, mouseY, cncX, cncY, cncW, cncH)) { if (this.client != null) this.client.setScreen(new CameraNoClipScreen()); return true; }
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        // === ЛОГИКА ПЕРЕТАСКИВАНИЯ HUD ===
-        if (draggingHud && button == 0) {
-            HudRenderer.hudX = mouseX - hudDragOffsetX;
-            HudRenderer.hudY = mouseY - hudDragOffsetY;
-
-            // Ограничиваем, чтобы не утащить за экран
-            if (HudRenderer.hudX < 0) HudRenderer.hudX = 0;
-            if (HudRenderer.hudY < 0) HudRenderer.hudY = 0;
-            if (HudRenderer.hudX > this.width - 110) HudRenderer.hudX = this.width - 110;
-            if (HudRenderer.hudY > this.height - 40) HudRenderer.hudY = this.height - 40;
-            return true;
-        }
-
-        // === ЛОГИКА ПЕРЕТАСКИВАНИЯ ПОЛЗУНКА ===
-        if (isDragging && button == 0) {
-            int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
-            int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
-            double scrollableTrack = scrollbarH - thumbHeight;
-            double ratio = (mouseY - scrollbarY - (thumbHeight / 2.0)) / scrollableTrack;
-            if (ratio < 0) ratio = 0;
-            if (ratio > 1) ratio = 1;
-            scrollOffset = ratio * maxScroll;
-            this.clearAndInit();
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-    }
-
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) {
-            isDragging = false;
-            draggingHud = false; // Сбрасываем перетаскивание HUD
-        }
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    private boolean inside(double mx, double my, int x, int y, int w, int h) {
-        return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Затемняем фон игры
         this.renderBackground(context, mouseX, mouseY, delta);
-        
-        if (maxScroll > 0) {
-            context.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarW, scrollbarY + scrollbarH, 0x55000000);
-            int thumbHeight = Math.max(20, (int) ((float) scrollbarH * scrollbarH / TOTAL_CONTENT_HEIGHT));
-            int thumbY = scrollbarY + (int) ((scrollOffset / maxScroll) * (scrollbarH - thumbHeight));
-            context.fill(scrollbarX, thumbY, scrollbarX + scrollbarW, thumbY + thumbHeight, 0xFFAAAAAA);
+
+        // 1. Основное окно
+        context.fill(panelX, panelY, panelX + panelW, panelY + panelH, BG_COLOR);
+        // Рамка
+        context.drawBorder(panelX, panelY, panelW, panelH, ACCENT_COLOR);
+
+        // 2. Левая панель (Sidebar)
+        int sidebarW = 100;
+        context.fill(panelX, panelY, panelX + sidebarW, panelY + panelH, SIDEBAR_COLOR);
+        context.drawBorder(panelX, panelY, sidebarW, panelH, new Color(40, 40, 50).getRGB());
+
+        // Заголовок в сайдбаре
+        context.drawCenteredTextWithShadow(this.textRenderer, "MOG", panelX + sidebarW / 2, panelY + 15, ACCENT_COLOR);
+        context.drawCenteredTextWithShadow(this.textRenderer, "CLIENT", panelX + sidebarW / 2, panelY + 25, 0xFFAAAAAA);
+
+        // Отрисовка категорий
+        int catY = panelY + 50;
+        for (Category cat : Category.values()) {
+            boolean isHovered = isHovered(mouseX, mouseY, panelX, catY, sidebarW, 20);
+            boolean isSelected = (currentCategory == cat);
+
+            if (isSelected) {
+                context.fill(panelX, catY, panelX + 3, catY + 20, ACCENT_COLOR); // Полоска слева
+                context.fill(panelX, catY, panelX + sidebarW, catY + 20, HOVER_COLOR); // Подсветка фона
+            } else if (isHovered) {
+                context.fill(panelX, catY, panelX + sidebarW, catY + 20, HOVER_COLOR);
+            }
+
+            int color = isSelected ? ACCENT_COLOR : TEXT_COLOR;
+            context.drawTextWithShadow(this.textRenderer, cat.name, panelX + 15, catY + 6, color);
+            catY += 22;
         }
 
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 5, 0xFFFFFF);
-        context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопкам — настройки. ЛКМ по HUD — перетащить."),
-                this.width / 2, 18, 0xAAAAAA);
+        // 3. Правая панель (Модули)
+        int contentX = panelX + sidebarW + 10;
+        int contentY = panelY + 10;
+        int contentW = panelW - sidebarW - 20;
+
+        // Заголовок категории
+        context.drawTextWithShadow(this.textRenderer, currentCategory.name + " Modules", contentX, contentY, TEXT_COLOR);
+        context.fill(contentX, contentY + 12, contentX + contentW, contentY + 13, new Color(40, 40, 50).getRGB());
+        contentY += 20;
+
+        // Отрисовка модулей
+        for (ModuleEntry mod : currentModules) {
+            boolean enabled = mod.state.get();
+            boolean isHovered = isHovered(mouseX, mouseY, contentX, contentY, contentW, 18);
+
+            // Фон модуля
+            if (enabled) {
+                context.fill(contentX, contentY, contentX + contentW, contentY + 18, ENABLED_BG);
+            } else if (isHovered) {
+                context.fill(contentX, contentY, contentX + contentW, contentY + 18, HOVER_COLOR);
+            }
+
+            // Текст модуля
+            int color = enabled ? 0xFFFFFFFF : TEXT_DISABLED;
+            context.drawTextWithShadow(this.textRenderer, mod.name, contentX + 5, contentY + 5, color);
+
+            // Индикатор включения (справа)
+            if (enabled) {
+                context.fill(contentX + contentW - 12, contentY + 5, contentX + contentW - 5, contentY + 12, ACCENT_COLOR);
+            } else {
+                context.drawBorder(contentX + contentW - 12, contentY + 5, 8, 8, new Color(80, 80, 80).getRGB());
+            }
+
+            contentY += 22;
+        }
+
+        // Подсказка внизу
+        context.drawTextWithShadow(this.textRenderer, "ЛКМ - Вкл/Выкл | ПКМ - Настройки", panelX + 10, panelY + panelH - 12, new Color(100, 100, 100).getRGB());
+
         super.render(context, mouseX, mouseY, delta);
     }
 
-    private String getEspLabel() {
-        return "ESP [" + BlockEspMod.getOreName() + "]: " + (BlockEspMod.espEnabled ? "ВКЛ" : "ВЫКЛ");
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int sidebarW = 100;
+        
+        // 1. Проверка клика по категориям
+        int catY = panelY + 50;
+        for (Category cat : Category.values()) {
+            if (isHovered(mouseX, mouseY, panelX, catY, sidebarW, 20)) {
+                currentCategory = cat;
+                updateModuleList(); // Обновляем список модулей
+                return true;
+            }
+            catY += 22;
+        }
+
+        // 2. Проверка клика по модулям
+        int contentX = panelX + sidebarW + 10;
+        int contentY = panelY + 10 + 20;
+        int contentW = panelW - sidebarW - 20;
+
+        for (ModuleEntry mod : currentModules) {
+            if (isHovered(mouseX, mouseY, contentX, contentY, contentW, 18)) {
+                if (button == 0) {
+                    // ЛКМ - переключить
+                    boolean currentState = mod.state.get();
+                    mod.toggle.accept(!currentState);
+                    Notification.show(mod.name, !currentState);
+                    Config.save();
+                } else if (button == 1) {
+                    // ПКМ - открыть настройки
+                    mod.openSettings.run();
+                }
+                return true;
+            }
+            contentY += 22;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private String getChestLabel() {
-        return "ChestESP [" + BlockEspMod.getChestName() + "]: " + (BlockEspMod.chestEspEnabled ? "ВКЛ" : "ВЫКЛ");
+    private boolean isHovered(double mouseX, double mouseY, int x, int y, int w, int h) {
+        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
     }
 
     @Override
     public boolean shouldPause() {
         return false;
     }
-            }
+
+    // Вспомогательный класс для хранения данных модуля
+    private record ModuleEntry(String name, Supplier<Boolean> state, Consumer<Boolean> toggle, Runnable openSettings) {}
+                                   }
