@@ -1,8 +1,6 @@
 package com.mogayt;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatScreen;
@@ -19,19 +17,14 @@ public class HudRenderer {
     public static double hudX = 5;
     public static double hudY = 5;
 
-    private static boolean dragging = false;
-    private static double dragOffsetX = 0;
-    private static double dragOffsetY = 0;
-
     public static void register() {
-        // 1. Отрисовка HUD
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player == null || client.world == null) return;
             if (client.options.hudHidden) return;
 
             int screenWidth = client.getWindow().getScaledWidth();
-            boolean isChatOpen = client.currentScreen instanceof ChatScreen;
+            boolean inMenu = client.currentScreen instanceof EspMenuScreen; // Показываем рамку в нашем меню
 
             Notification.tick();
             if (!Notification.entries.isEmpty()) {
@@ -42,7 +35,7 @@ public class HudRenderer {
                 }
             }
 
-            drawInfoPanel(drawContext, client, (int) hudX, (int) hudY, isChatOpen);
+            drawInfoPanel(drawContext, client, (int) hudX, (int) hudY, inMenu);
 
             if (client.crosshairTarget instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity target && target != client.player) {
                 drawTargetHud(drawContext, client, target, (int) hudX, (int) hudY + 45);
@@ -50,51 +43,11 @@ public class HudRenderer {
 
             drawArrayList(drawContext, client, screenWidth);
         });
-
-        // 2. События мыши для экрана чата (используем allow* события)
-        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (!(screen instanceof ChatScreen)) return;
-
-            // Перетаскивание: allowMouseDrag возвращает boolean (разрешить/запретить)
-            ScreenMouseEvents.allowMouseDrag(screen).register((scr, mouseX, mouseY, button, deltaX, deltaY) -> {
-                if (button == 0 && dragging) {
-                    hudX = mouseX - dragOffsetX;
-                    hudY = mouseY - dragOffsetY;
-
-                    int sw = client.getWindow().getScaledWidth();
-                    int sh = client.getWindow().getScaledHeight();
-                    if (hudX < 0) hudX = 0;
-                    if (hudY < 0) hudY = 0;
-                    if (hudX > sw - 110) hudX = sw - 110;
-                    if (hudY > sh - 40) hudY = sh - 40;
-                    return true; // Разрешаем перетаскивание
-                }
-                return false; // В остальных случаях не вмешиваемся
-            });
-
-            // Клик: allowMouseClick возвращает boolean
-            ScreenMouseEvents.allowMouseClick(screen).register((scr, mouseX, mouseY, button) -> {
-                if (button == 0 && mouseX >= hudX && mouseX <= hudX + 110 && mouseY >= hudY && mouseY <= hudY + 40) {
-                    dragging = true;
-                    dragOffsetX = mouseX - hudX;
-                    dragOffsetY = mouseY - hudY;
-                    return false; // Запрещаем стандартный клик по чату (чтобы он не мешал)
-                }
-                return true; // Разрешаем клики в других местах
-            });
-
-            // Отпускание мыши: allowMouseRelease возвращает boolean
-            ScreenMouseEvents.allowMouseRelease(screen).register((scr, mouseX, mouseY, button) -> {
-                if (button == 0) dragging = false;
-                return true; // Всегда разрешаем отпускание
-            });
-        });
     }
 
-    private static void drawInfoPanel(DrawContext context, MinecraftClient client, int x, int y, boolean isChatOpen) {
+    private static void drawInfoPanel(DrawContext context, MinecraftClient client, int x, int y, boolean inMenu) {
         int w = 110;
         int h = 40;
-
         context.fill(x, y, x + w, y + h, 0x90000000);
         context.fill(x, y, x + 2, y + h, 0xFFAA00FF);
 
@@ -110,7 +63,8 @@ public class HudRenderer {
         String coords = String.format("X:%d Y:%d Z:%d", client.player.getBlockX(), client.player.getBlockY(), client.player.getBlockZ());
         context.drawTextWithShadow(client.textRenderer, Text.literal(coords), x + 6, y + 26, 0xFFAAAAAA);
 
-        if (isChatOpen) {
+        // Если открыто меню чита, показываем желтую рамку
+        if (inMenu) {
             context.drawBorder(x - 1, y - 1, w + 2, h + 2, 0xFFFFFF00);
         }
     }
@@ -120,7 +74,6 @@ public class HudRenderer {
         int h = 35;
         context.fill(x, y, x + w, y + h, 0x90000000);
         context.fill(x, y, x + 2, y + h, 0xFFFF0000);
-
         context.drawTextWithShadow(client.textRenderer, Text.literal(target.getName().getString()), x + 6, y + 4, 0xFFFFFFFF);
 
         float hp = target.getHealth();
