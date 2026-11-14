@@ -51,12 +51,12 @@ public class HudRenderer {
             drawArrayList(drawContext, client, screenWidth);
         });
 
-        // 2. События мыши для экрана чата
+        // 2. События мыши для экрана чата (используем allow* события)
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (!(screen instanceof ChatScreen)) return;
 
-            // Перетаскивание (первый параметр — Screen)
-            ScreenMouseEvents.beforeMouseDrag(screen).register((scr, mouseX, mouseY, button, deltaX, deltaY) -> {
+            // Перетаскивание: allowMouseDrag возвращает boolean (разрешить/запретить)
+            ScreenMouseEvents.allowMouseDrag(screen).register((scr, mouseX, mouseY, button, deltaX, deltaY) -> {
                 if (button == 0 && dragging) {
                     hudX = mouseX - dragOffsetX;
                     hudY = mouseY - dragOffsetY;
@@ -67,26 +67,26 @@ public class HudRenderer {
                     if (hudY < 0) hudY = 0;
                     if (hudX > sw - 110) hudX = sw - 110;
                     if (hudY > sh - 40) hudY = sh - 40;
-                    return true; // Отменяем стандартную обработку
+                    return true; // Разрешаем перетаскивание
                 }
-                return false;
+                return false; // В остальных случаях не вмешиваемся
             });
 
-            // Клик (первый параметр — Screen)
-            ScreenMouseEvents.beforeMouseClick(screen).register((scr, mouseX, mouseY, button) -> {
+            // Клик: allowMouseClick возвращает boolean
+            ScreenMouseEvents.allowMouseClick(screen).register((scr, mouseX, mouseY, button) -> {
                 if (button == 0 && mouseX >= hudX && mouseX <= hudX + 110 && mouseY >= hudY && mouseY <= hudY + 40) {
                     dragging = true;
                     dragOffsetX = mouseX - hudX;
                     dragOffsetY = mouseY - hudY;
-                    return true;
+                    return false; // Запрещаем стандартный клик по чату (чтобы он не мешал)
                 }
-                return false;
+                return true; // Разрешаем клики в других местах
             });
 
-            // Отпускание мыши (первый параметр — Screen)
-            ScreenMouseEvents.beforeMouseRelease(screen).register((scr, mouseX, mouseY, button) -> {
+            // Отпускание мыши: allowMouseRelease возвращает boolean
+            ScreenMouseEvents.allowMouseRelease(screen).register((scr, mouseX, mouseY, button) -> {
                 if (button == 0) dragging = false;
-                return false;
+                return true; // Всегда разрешаем отпускание
             });
         });
     }
