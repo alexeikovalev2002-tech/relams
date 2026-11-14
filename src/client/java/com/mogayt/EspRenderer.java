@@ -86,19 +86,8 @@ public class EspRenderer {
             float z2 = (float)(b.maxZ - cam.z);
 
             RenderHelper.drawBoxRaw(buf, mat, x1, y1, z1, x2, y2, z2, 1f, 0f, 0f);
-            RenderHelper.drawBoxRaw(buf, mat,
-                    x1 - 0.015f, y1 - 0.015f, z1 - 0.015f,
-                    x2 + 0.015f, y2 + 0.015f, z2 + 0.015f, 1f, 0f, 0f);
-            RenderHelper.drawBoxRaw(buf, mat,
-                    x1 - 0.03f, y1 - 0.03f, z1 - 0.03f,
-                    x2 + 0.03f, y2 + 0.03f, z2 + 0.03f, 1f, 0f, 0f);
-        }
-
-        TrajectoryPredictor.update(client);
-        if (TrajectoryPredictor.enabled && TrajectoryPredictor.impactPoint != null) {
-            RenderHelper.drawDiamond(buf, mat,
-                    TrajectoryPredictor.impactPoint, TrajectoryPredictor.impactNormal, cam,
-                    TrajectoryPredictor.lineWidth);
+            RenderHelper.drawBoxRaw(buf, mat, x1 - 0.015f, y1 - 0.015f, z1 - 0.015f, x2 + 0.015f, y2 + 0.015f, z2 + 0.015f, 1f, 0f, 0f);
+            RenderHelper.drawBoxRaw(buf, mat, x1 - 0.03f, y1 - 0.03f, z1 - 0.03f, x2 + 0.03f, y2 + 0.03f, z2 + 0.03f, 1f, 0f, 0f);
         }
 
         pms.clear();
@@ -153,36 +142,9 @@ public class EspRenderer {
     private static void renderHud(DrawContext dc, RenderTickCounter td) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.getWindow() == null) return;
-        int sw = client.getWindow().getScaledWidth();
-        int sh = client.getWindow().getScaledHeight();
-
-        // ===== ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ (1 секунда) =====
-        Notification.tick();
-        if (!Notification.entries.isEmpty() && client.textRenderer != null) {
-            int nx = 2; // Левый край
-            int ny = 5; // Верхний край
-            for (Notification.Entry e : Notification.entries) {
-                dc.drawTextWithShadow(client.textRenderer, Text.literal(e.text), nx, ny, 0xFFFFFFFF);
-                ny += 10;
-            }
-        }
-
-        // ===== Круг AimMobs =====
-        if (AimMobs.enabled) {
-            int cx = sw / 2, cy = sh / 2;
-            int radius = (int) (sh * 0.5 * Math.tan(Math.toRadians(AimMobs.fovAngle)) / Math.tan(Math.toRadians(70.0)));
-            if (radius < 10) radius = 10;
-            if (radius > sh / 2) radius = sh / 2;
-            for (int i = 0; i < 180; i++) {
-                double a = i * Math.PI * 2.0 / 180;
-                int x = cx + (int) Math.round(Math.cos(a) * radius);
-                int y = cy + (int) Math.round(Math.sin(a) * radius);
-                dc.fill(x, y, x + 1, y + 1, 0xFFFFFFFF);
-            }
-        }
-
         if (client.textRenderer == null) return;
 
+        // Тут остались только имена над игроками и предметами (привязка к 3D миру)
         for (PM m : pms) {
             int nw = client.textRenderer.getWidth(m.name);
             dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFFFFFFF);
@@ -199,4 +161,4 @@ public class EspRenderer {
             dc.drawTextWithShadow(client.textRenderer, Text.literal(m.name), m.x - nw / 2, m.y, 0xFFAAFFAA);
         }
     }
-}
+                    }
