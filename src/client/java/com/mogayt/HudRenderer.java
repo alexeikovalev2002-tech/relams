@@ -3,6 +3,7 @@ package com.mogayt;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.EntityHitResult;
@@ -13,6 +14,15 @@ import java.util.List;
 
 public class HudRenderer {
 
+    // Координаты левой панели (FPS, Пинг, Координаты)
+    public static double hudX = 5;
+    public static double hudY = 5;
+    
+    // Переменные для перетаскивания
+    private static boolean dragging = false;
+    private static double dragOffsetX = 0;
+    private static double dragOffsetY = 0;
+
     public static void register() {
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
             MinecraftClient client = MinecraftClient.getInstance();
@@ -20,44 +30,82 @@ public class HudRenderer {
             if (client.options.hudHidden) return;
 
             int screenWidth = client.getWindow().getScaledWidth();
-            int screenHeight = client.getWindow().getScaledHeight();
+            boolean isChatOpen = client.currentScreen instanceof ChatScreen;
 
-            // 1. РИСУЕМ УВЕДОМЛЕНИЯ (сверху слева)
+            // 1. УВЕДОМЛЕНИЯ
             Notification.tick();
             if (!Notification.entries.isEmpty()) {
-                int ny = 5;
+                int ny = (int) hudY + 45; // Чуть ниже панели
                 for (Notification.Entry e : Notification.entries) {
-                    drawContext.drawTextWithShadow(client.textRenderer, Text.literal(e.text), 5, ny, 0xFFFFFFFF);
+                    drawContext.drawTextWithShadow(client.textRenderer, Text.literal(e.text), (int) hudX, ny, 0xFFFFFFFF);
                     ny += 10;
                 }
             }
 
-            // 2. РИСУЕМ ВОДЯНОЙ ЗНАК (FPS, Пинг, Координаты)
-            drawInfoPanel(drawContext, client, 5, 5);
+            // 2. ИНФО-ПАНЕЛЬ (FPS и т.д.)
+            drawInfoPanel(drawContext, client, (int) hudX, (int) hudY, isChatOpen);
 
-            // 3. РИСУЕМ TARGET HUD (Инфо о цели)
+            // 3. TARGET HUD
             if (client.crosshairTarget instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity target && target != client.player) {
-                drawTargetHud(drawContext, client, target, 5, 55);
+                drawTargetHud(drawContext, client, target, (int) hudX, (int) hudY + 45);
             }
 
-            // 4. РИСУЕМ ARRAYLIST (Список включенных функций справа)
+            // 4. ARRAYLIST (Справа)
             drawArrayList(drawContext, client, screenWidth);
         });
     }
 
-    private static void drawInfoPanel(DrawContext context, MinecraftClient client, int x, int y) {
+    // --- ЛОГИКА ПЕРЕТАСКИВАНИЯ (Вызывается из Mixin) ---
+
+    public static boolean handleMouseClick(double mouseX, double mouseY, int button) {
+        if (button != 0) return false; // Только ЛКМ
+        
+        // Проверяем, попал ли клик по нашей панели (110 ширина, 40 высота)
+        if (mouseX >= hudX && mouseX <= hudX + 110 && mouseY >= hudY && mouseY <= hudY + 40) {
+            dragging = true;
+            dragOffsetX = mouseX - hudX;
+            dragOffsetY = mouseY - hudY;
+            return true; // Блокируем клик, чтобы он не попал в чат
+        }
+        return false;
+    }
+
+    public static boolean handleMouseDrag(double mouseX, double mouseY, int button) {
+        if (dragging && button == 0) {
+            // Обновляем позицию HUD
+            hudX = mouseX - dragOffsetX;
+            hudY = mouseY - dragOffsetY;
+
+            // Ограничиваем, чтобы не утащить за экран
+            MinecraftClient client = MinecraftClient.getInstance();
+            int sw = client.getWindow().getScaledWidth();
+            int sh = client.getWindow().getScaledHeight();
+            
+            if (hudX < 0) hudX = 0;
+            if (hudY < 0) hudY = 0;
+            if (hudX > sw - 110) hudX = sw - 110;
+            if (hudY > sh - 40) hudY = sh - 40;
+            
+            return true;
+        }
+        return false;
+    }
+
+    public static void handleMouseRelease(int button) {
+        if (button == 0) dragging = false;
+    }
+
+    // --------------------------------------------------
+
+    private static void drawInfoPanel(DrawContext context, MinecraftClient client, int x, int y, boolean isChatOpen) {
         int w = 110;
         int h = 40;
         
-        // Темный фон с прозрачностью
         context.fill(x, y, x + w, y + h, 0x90000000);
-        // Фиолетовая полоска слева
         context.fill(x, y, x + 2, y + h, 0xFFAA00FF); 
 
-        // FPS
         context.drawTextWithShadow(client.textRenderer, Text.literal("FPS: " + client.getCurrentFps()), x + 6, y + 4, 0xFFFFFFFF);
 
-        // Пинг
         int ping = 0;
         if (client.getNetworkHandler() != null) {
             var entry = client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
@@ -65,16 +113,20 @@ public class HudRenderer {
         }
         context.drawTextWithShadow(client.textRenderer, Text.literal("Ping: " + ping), x + 6, y + 15, 0xFFFFFFFF);
 
-        // Координаты
         String coords = String.format("X:%d Y:%d Z:%d", client.player.getBlockX(), client.player.getBlockY(), client.player.getBlockZ());
         context.drawTextWithShadow(client.textRenderer, Text.literal(coords), x + 6, y + 26, 0xFFAAAAAA);
+        
+        // Если открыт чат, рисуем подсказку, что панель можно двигать
+        if (isChatOpen) {
+            context.drawBorder(x - 1, y - 1, w + 2, h + 2, 0xFFFFFF00); // Желтая рамка
+        }
     }
 
     private static void drawTargetHud(DrawContext context, MinecraftClient client, LivingEntity target, int x, int y) {
         int w = 120;
         int h = 35;
         context.fill(x, y, x + w, y + h, 0x90000000);
-        context.fill(x, y, x + 2, y + h, 0xFFFF0000); // Красная полоска
+        context.fill(x, y, x + 2, y + h, 0xFFFF0000);
 
         context.drawTextWithShadow(client.textRenderer, Text.literal(target.getName().getString()), x + 6, y + 4, 0xFFFFFFFF);
 
@@ -113,9 +165,9 @@ public class HudRenderer {
             int x = startX - textWidth - 5;
             int y = startY + (i * rowH);
 
-            context.fill(x - 2, y, startX, y + rowH - 1, 0x90000000); // Фон
-            context.fill(x - 2, y, x, y + rowH - 1, m.color); // Цветная полоска
-            context.drawTextWithShadow(client.textRenderer, Text.literal(m.name), x + 1, y + 1, 0xFFFFFFFF); // Текст
+            context.fill(x - 2, y, startX, y + rowH - 1, 0x90000000);
+            context.fill(x - 2, y, x, y + rowH - 1, m.color);
+            context.drawTextWithShadow(client.textRenderer, Text.literal(m.name), x + 1, y + 1, 0xFFFFFFFF);
         }
     }
 
