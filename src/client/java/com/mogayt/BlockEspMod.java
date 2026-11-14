@@ -176,6 +176,7 @@ public class BlockEspMod implements ClientModInitializer {
         Config.init();
         ChatBind.register();
         EspRenderer.register();
+        HudRenderer.register();
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             AimMobs.tick(client);
