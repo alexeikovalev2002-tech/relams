@@ -18,7 +18,7 @@ public class EspMenuScreen extends Screen {
     private int maceX, maceY, maceW, maceH;
     private int crystalX, crystalY, crystalW, crystalH;
     private int anchorX, anchorY, anchorW, anchorH;
-    private int triggerX, triggerY, triggerW, triggerH; // Новая кнопка
+    private int triggerX, triggerY, triggerW, triggerH;
     private int fbX, fbY, fbW, fbH;
     private int fcX, fcY, fcW, fcH;
     private int optX, optY, optW, optH;
@@ -30,7 +30,11 @@ public class EspMenuScreen extends Screen {
     private int scrollbarX, scrollbarY, scrollbarW, scrollbarH;
     private boolean isDragging = false;
 
-    // Увеличили высоту контента, так как добавилась кнопка
+    // НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ПЕРЕТАСКИВАНИЯ HUD
+    private boolean draggingHud = false;
+    private double hudDragOffsetX = 0;
+    private double hudDragOffsetY = 0;
+
     private static final int TOTAL_CONTENT_HEIGHT = 322;
     private static final int VIEW_HEIGHT_MARGIN = 50;
 
@@ -68,7 +72,7 @@ public class EspMenuScreen extends Screen {
         maceX = x; maceY = startY + 144; maceW = w; maceH = h;
         crystalX = x; crystalY = startY + 162; crystalW = w; crystalH = h;
         anchorX = x; anchorY = startY + 180; anchorW = w; anchorH = h;
-        triggerX = x; triggerY = startY + 198; triggerW = w; triggerH = h; // Новая позиция
+        triggerX = x; triggerY = startY + 198; triggerW = w; triggerH = h;
         fbX = x; fbY = startY + 216; fbW = w; fbH = h;
         fcX = x; fcY = startY + 234; fcW = w; fcH = h;
         optX = x; optY = startY + 252; optW = w; optH = h;
@@ -130,7 +134,6 @@ public class EspMenuScreen extends Screen {
                 (b) -> { AnchorAura.enabled = !AnchorAura.enabled; Notification.show("AnchorAura", AnchorAura.enabled); b.setMessage(Text.literal(AnchorAura.enabled ? "AnchorAura: ВКЛ" : "AnchorAura: ВЫКЛ")); }
         ).dimensions(anchorX, anchorY, w, h).build());
 
-        // Новая кнопка TriggerBot
         this.addDrawableChild(ButtonWidget.builder(
                 Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ"),
                 (b) -> { TriggerBot.enabled = !TriggerBot.enabled; Notification.show("TriggerBot", TriggerBot.enabled); b.setMessage(Text.literal(TriggerBot.enabled ? "TriggerBot: ВКЛ" : "TriggerBot: ВЫКЛ")); }
@@ -178,6 +181,18 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // === 1. ПРОВЕРКА КЛИКА ПО HUD (ПЕРЕТАСКИВАНИЕ) ===
+        if (button == 0) {
+            if (mouseX >= HudRenderer.hudX && mouseX <= HudRenderer.hudX + 110 && 
+                mouseY >= HudRenderer.hudY && mouseY <= HudRenderer.hudY + 40) {
+                draggingHud = true;
+                hudDragOffsetX = mouseX - HudRenderer.hudX;
+                hudDragOffsetY = mouseY - HudRenderer.hudY;
+                return true; // Блокируем клик, чтобы он не нажал кнопки под HUD
+            }
+        }
+
+        // === 2. ПРОВЕРКА КЛИКА ПО СКРОЛЛБАРУ ===
         if (button == 0 && maxScroll > 0) {
             int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
             int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
@@ -189,6 +204,7 @@ public class EspMenuScreen extends Screen {
             }
         }
 
+        // === 3. ПРОВЕРКА ПКМ (ОТКРЫТИЕ МЕНЮ) ===
         if (button == 1) {
             if (inside(mouseX, mouseY, espX, espY, espW, espH)) { if (this.client != null) this.client.setScreen(new OreSelectScreen()); return true; }
             if (inside(mouseX, mouseY, chestX, chestY, chestW, chestH)) { if (this.client != null) this.client.setScreen(new ChestSelectScreen()); return true; }
@@ -201,7 +217,6 @@ public class EspMenuScreen extends Screen {
             if (inside(mouseX, mouseY, maceX, maceY, maceW, maceH)) { if (this.client != null) this.client.setScreen(new MaceAuraScreen()); return true; }
             if (inside(mouseX, mouseY, crystalX, crystalY, crystalW, crystalH)) { if (this.client != null) this.client.setScreen(new CrystalAuraScreen()); return true; }
             if (inside(mouseX, mouseY, anchorX, anchorY, anchorW, anchorH)) { if (this.client != null) this.client.setScreen(new AnchorAuraScreen()); return true; }
-            // ПКМ по TriggerBot
             if (inside(mouseX, mouseY, triggerX, triggerY, triggerW, triggerH)) { if (this.client != null) this.client.setScreen(new TriggerBotScreen()); return true; }
             if (inside(mouseX, mouseY, fbX, fbY, fbW, fbH)) { if (this.client != null) this.client.setScreen(new FullbrightScreen()); return true; }
             if (inside(mouseX, mouseY, fcX, fcY, fcW, fcH)) { if (this.client != null) this.client.setScreen(new FreecamScreen()); return true; }
@@ -214,6 +229,20 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        // === ЛОГИКА ПЕРЕТАСКИВАНИЯ HUD ===
+        if (draggingHud && button == 0) {
+            HudRenderer.hudX = mouseX - hudDragOffsetX;
+            HudRenderer.hudY = mouseY - hudDragOffsetY;
+
+            // Ограничиваем, чтобы не утащить за экран
+            if (HudRenderer.hudX < 0) HudRenderer.hudX = 0;
+            if (HudRenderer.hudY < 0) HudRenderer.hudY = 0;
+            if (HudRenderer.hudX > this.width - 110) HudRenderer.hudX = this.width - 110;
+            if (HudRenderer.hudY > this.height - 40) HudRenderer.hudY = this.height - 40;
+            return true;
+        }
+
+        // === ЛОГИКА ПЕРЕТАСКИВАНИЯ ПОЛЗУНКА ===
         if (isDragging && button == 0) {
             int viewHeight = this.height - VIEW_HEIGHT_MARGIN;
             int thumbHeight = Math.max(20, (int) ((float) viewHeight * viewHeight / TOTAL_CONTENT_HEIGHT));
@@ -230,7 +259,10 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) isDragging = false;
+        if (button == 0) {
+            isDragging = false;
+            draggingHud = false; // Сбрасываем перетаскивание HUD
+        }
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
@@ -251,7 +283,7 @@ public class EspMenuScreen extends Screen {
 
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 5, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("ПКМ по кнопкам — настройки"),
+                Text.literal("ПКМ по кнопкам — настройки. ЛКМ по HUD — перетащить."),
                 this.width / 2, 18, 0xAAAAAA);
         super.render(context, mouseX, mouseY, delta);
     }
@@ -268,4 +300,4 @@ public class EspMenuScreen extends Screen {
     public boolean shouldPause() {
         return false;
     }
-}
+            }
