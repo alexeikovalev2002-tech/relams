@@ -13,13 +13,6 @@ public class ChatScreenMixin {
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (HudRenderer.handleMouseClick(mouseX, mouseY, button)) {
-            cir.setReturnValue(true); // Блокируем клик по чату, если попали в HUD
-        }
-    }
-
-    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-    private void onMouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY, CallbackInfoReturnable<Boolean> cir) {
-        if (HudRenderer.handleMouseDrag(mouseX, mouseY, button)) {
             cir.setReturnValue(true);
         }
     }
