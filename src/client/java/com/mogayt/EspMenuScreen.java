@@ -108,8 +108,6 @@ public class EspMenuScreen extends Screen {
                     Freecam.enabled = v;
                     if (v) {
                         Freecam.onEnable();
-                    } else {
-                        Freecam.onDisable();
                     }
                 }, () -> openSubScreen(FreecamScreen::new)));
             }
@@ -132,11 +130,9 @@ public class EspMenuScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context, mouseX, mouseY, delta);
 
-        // Тень и тело окна
         context.fill(panelX - 3, panelY - 3, panelX + panelW + 3, panelY + panelH + 3, 0x60000000);
         context.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xF00F0F14);
 
-        // Шапка окна
         context.fill(panelX, panelY, panelX + panelW, panelY + 24, 0xFF19191E);
         context.drawTextWithShadow(this.textRenderer, "Mog Client v1.0", panelX + 10, panelY + 8, 0xFFFFFFFF);
 
@@ -145,7 +141,6 @@ public class EspMenuScreen extends Screen {
 
         context.drawBorder(panelX, panelY, panelW, panelH, themeColor);
 
-        // Левый сайдбар
         int sidebarW = 105;
         context.fill(panelX, panelY + 24, panelX + sidebarW, panelY + panelH, 0xFF141419);
         context.drawBorder(panelX, panelY + 24, sidebarW, panelH - 24, 0xFF282832);
@@ -167,7 +162,6 @@ public class EspMenuScreen extends Screen {
             catY += 22;
         }
 
-        // Область контента
         int contentX = panelX + sidebarW + 14;
         int contentY = panelY + 32;
         int contentW = panelW - sidebarW - 24;
@@ -183,7 +177,6 @@ public class EspMenuScreen extends Screen {
 
         context.disableScissor();
 
-        // Подсказка внизу
         context.drawTextWithShadow(
                 this.textRenderer,
                 "LMB: Toggle | RMB: Settings | Scroll: List",
@@ -273,7 +266,6 @@ public class EspMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Шапка: закрытие или перетаскивание
         if (isHovered(mouseX, mouseY, panelX, panelY, panelW, 24) && button == 0) {
             if (isHovered(mouseX, mouseY, panelX + panelW - 20, panelY + 4, 16, 16)) {
                 this.close();
@@ -285,7 +277,6 @@ public class EspMenuScreen extends Screen {
             return true;
         }
 
-        // Категории
         int sidebarW = 105;
         int catY = panelY + 38;
         for (Category cat : Category.values()) {
@@ -296,7 +287,6 @@ public class EspMenuScreen extends Screen {
             catY += 22;
         }
 
-        // Контент
         int contentX = panelX + sidebarW + 14;
         int contentY = panelY + 32;
         int contentW = panelW - sidebarW - 24;
